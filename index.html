@@ -278,6 +278,17 @@
     }
 
     .footer { margin-top: 24px; border-top: 1px solid #1a1a1a; padding: 16px 10px 24px; text-align: center; color: #d3bc93; font-size: .88rem; }
+    .footer-links { margin-top: 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+    .footer-link-btn {
+      border: 1px solid #3a3124;
+      background: #16120c;
+      color: #e2c189;
+      border-radius: 999px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font: inherit;
+    }
+    .footer-link-btn:hover, .footer-link-btn:focus-visible { border-color: var(--gold); background: #1f1710; }
     .cart-float { position: fixed; left: 10px; bottom: 12px; z-index: 80; }
     .wa-float { position: fixed; right: 12px; bottom: 18px; z-index: 85; background: var(--green); color: #fff; border-radius: 999px; border: 0; width: 56px; height: 56px; font-size: 1.5rem; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,.35); }
 
@@ -288,6 +299,32 @@
     .modal-content { background: #111; border: 1px solid #2f2f2f; border-radius: 14px; max-width: 540px; margin: 0 auto; overflow: hidden; }
     .modal-content img { width: 100%; aspect-ratio: 1/1; object-fit: cover; }
     .modal-body { padding: 12px; }
+    .legal-modal .modal-content { overflow: visible; max-height: calc(100vh - 40px); display: flex; flex-direction: column; }
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #272727;
+      padding: 12px;
+      background: #0d0d0d;
+    }
+    .modal-head h3 { margin: 0; color: var(--gold); font-size: 1.1rem; }
+    .modal-close {
+      border: 1px solid #3c3c3c;
+      background: #1a1a1a;
+      color: #f6f6f6;
+      border-radius: 8px;
+      width: 34px;
+      height: 34px;
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+    }
+    .modal-close:hover, .modal-close:focus-visible { border-color: var(--gold); }
+    .legal-content { padding: 14px 12px; overflow-y: auto; color: #e9dfce; line-height: 1.6; }
+    .legal-content h4 { color: var(--gold); margin: 12px 0 6px; }
+    .legal-content p, .legal-content li { margin: 0 0 8px; }
 
     :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
@@ -355,7 +392,14 @@
       </form>
     </section>
 
-    <div class="footer">© קומפס מעדני בשר · כפר סבא · מדיניות פרטיות · תנאי שימוש</div>
+    <div class="footer">
+      <div>© קומפס מעדני בשר · כפר סבא</div>
+      <div class="footer-links" aria-label="קישורי מדיניות ונגישות">
+        <button class="footer-link-btn" type="button" data-modal-target="accessibilityModal" aria-label="פתח הצהרת נגישות">הצהרת נגישות</button>
+        <button class="footer-link-btn" type="button" data-modal-target="privacyModal" aria-label="פתח מדיניות פרטיות">מדיניות פרטיות</button>
+        <button class="footer-link-btn" type="button" data-modal-target="termsModal" aria-label="פתח תנאי שימוש והזמנה">תנאי שימוש והזמנה</button>
+      </div>
+    </div>
   </main>
 </div>
 
@@ -366,6 +410,60 @@
   <div class="modal-content" role="dialog" aria-modal="true" aria-label="פרטי מוצר">
     <div id="modalMedia"></div>
     <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+<div class="modal legal-modal" id="accessibilityModal" aria-hidden="true" onclick="closeModal(event)">
+  <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="accessibilityTitle">
+    <div class="modal-head">
+      <h3 id="accessibilityTitle">הצהרת נגישות</h3>
+      <button class="modal-close" type="button" data-close-modal aria-label="סגור חלון הצהרת נגישות">✕</button>
+    </div>
+    <div class="legal-content">
+      <p>קומפס מעדני בשר פועלת להנגשת האתר עבור כלל הלקוחות, מתוך מחויבות לשוויון, כבוד ונוחות שימוש.</p>
+      <h4>התאמות שבוצעו באתר</h4>
+      <ul>
+        <li>מבנה כותרות ברור וניווט תקין באמצעות מקלדת.</li>
+        <li>ניגודיות צבעים גבוהה והתאמה לתצוגה במסכים שונים.</li>
+        <li>תיוג רכיבי ממשק מרכזיים באמצעות מאפייני ARIA.</li>
+      </ul>
+      <h4>פניה בנושא נגישות</h4>
+      <p>אם נתקלתם בקושי או בתקלה בנושא נגישות, ניתן ליצור קשר עם החנות ונעשה כל מאמץ לטפל בכך בהקדם.</p>
+    </div>
+  </div>
+</div>
+<div class="modal legal-modal" id="privacyModal" aria-hidden="true" onclick="closeModal(event)">
+  <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="privacyTitle">
+    <div class="modal-head">
+      <h3 id="privacyTitle">מדיניות פרטיות</h3>
+      <button class="modal-close" type="button" data-close-modal aria-label="סגור חלון מדיניות פרטיות">✕</button>
+    </div>
+    <div class="legal-content">
+      <p>בעת ביצוע הזמנה נאספים פרטי יצירת קשר ופרטי הזמנה לצורך טיפול בהזמנה, תיאום משלוח/איסוף ושירות לקוחות.</p>
+      <h4>שימוש במידע</h4>
+      <ul>
+        <li>עיבוד וניהול ההזמנה שביצעתם באתר.</li>
+        <li>יצירת קשר בנוגע לשינויים, זמינות מוצרים או שירות.</li>
+        <li>שיפור חוויית השירות והתפעול השוטף של החנות.</li>
+      </ul>
+      <p>המידע אינו נמכר לגורמים חיצוניים. העברת מידע תתבצע רק ככל שנדרש לצורך השלמת ההזמנה או לפי דין.</p>
+    </div>
+  </div>
+</div>
+<div class="modal legal-modal" id="termsModal" aria-hidden="true" onclick="closeModal(event)">
+  <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="termsTitle">
+    <div class="modal-head">
+      <h3 id="termsTitle">תנאי שימוש והזמנה</h3>
+      <button class="modal-close" type="button" data-close-modal aria-label="סגור חלון תנאי שימוש והזמנה">✕</button>
+    </div>
+    <div class="legal-content">
+      <p>השימוש באתר מהווה הסכמה לתנאים שלהלן. מומלץ לעיין בתנאים לפני השלמת הזמנה.</p>
+      <ul>
+        <li>מחירי המוצרים וזמינותם עשויים להשתנות מעת לעת.</li>
+        <li>אישור הזמנה סופי מתקבל לאחר קליטת ההזמנה ואימות פרטי הלקוח.</li>
+        <li>זמני אספקה/איסוף הם משוערים ותלויים בעומס ובזמינות.</li>
+      </ul>
+      <p>בכל שאלה לגבי הזמנה, שינוי או ביטול ניתן לפנות ישירות לחנות דרך פרטי ההתקשרות.</p>
+    </div>
   </div>
 </div>
 
@@ -452,8 +550,35 @@ function addToCart(id){const p=products.find(x=>String(x.id)===String(id)); if(!
 function removeItem(id){delete cart[id];renderCart()}
 function openWhatsApp(){window.open('https://wa.me/972000000000?text='+encodeURIComponent('שלום קומפס, אשמח לעזרה עם הזמנה'),'_blank')}
 function openProductModal(id){const p=products.find(x=>String(x.id)===String(id)); if(!p) return; document.getElementById('modalMedia').innerHTML = imgHtml(p); document.getElementById('modalBody').innerHTML = `<h3>${p.name}</h3><p class="meta">${cleanDesc(p.description)||''}</p><div class="price">${money(p.price)} / ${p.unit||''}</div>${isSoldout(p)?'<div class="soldout-label">אזל מהמלאי</div>':''}`; document.getElementById('productModal').setAttribute('aria-hidden','false');}
-function closeModal(event){if(event.target.id==='productModal'){document.getElementById('productModal').setAttribute('aria-hidden','true');}}
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.getElementById('productModal').setAttribute('aria-hidden','true');}});
+function openModalById(modalId){
+  const modal = document.getElementById(modalId);
+  if(!modal) return;
+  modal.setAttribute('aria-hidden','false');
+}
+function closeModalById(modalId){
+  const modal = document.getElementById(modalId);
+  if(!modal) return;
+  modal.setAttribute('aria-hidden','true');
+}
+function closeModal(event){
+  if(event.target.classList.contains('modal')){
+    event.target.setAttribute('aria-hidden','true');
+  }
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    document.querySelectorAll('.modal[aria-hidden="false"]').forEach(modal=>modal.setAttribute('aria-hidden','true'));
+  }
+});
+document.querySelectorAll('[data-modal-target]').forEach(btn=>{
+  btn.addEventListener('click',()=>openModalById(btn.dataset.modalTarget));
+});
+document.querySelectorAll('[data-close-modal]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const modal = btn.closest('.modal');
+    if(modal){ modal.setAttribute('aria-hidden','true'); }
+  });
+});
 function renderCart(){const items=Object.values(cart); const box=document.getElementById('cartItems'); if(!items.length){box.className='meta';box.innerHTML='עדיין לא נבחרו מוצרים'}else{box.className='';box.innerHTML=items.map(i=>`<div style="border-bottom:1px solid #2a2a2a;padding:6px 0"><b>${i.name}</b><br>${i.qty} ${i.unit||''} × ${money(i.price)} = ${money(i.qty*i.price)}<br><button class="chip" onclick="removeItem('${i.id}')">הסר</button></div>`).join('')} const total=items.reduce((s,i)=>s+i.qty*i.price,0); document.getElementById('cartTotal').textContent=money(total); document.getElementById('cartTotalMini').textContent=money(total); document.getElementById('cartCount').textContent=items.length;}
 document.getElementById('orderForm').addEventListener('submit',async e=>{e.preventDefault(); const items=Object.values(cart); if(!items.length){showToast('צריך לבחור לפחות מוצר אחד');return} if(!GOOGLE_SCRIPT_URL.includes('script.google.com')){showToast('צריך להכניס קודם את קישור Apps Script בקובץ');return} const fd=new FormData(e.target); const payload={customer:{name:fd.get('name'),phone:fd.get('phone'),email:fd.get('email'),city:fd.get('city'),address:fd.get('address'),orderType:fd.get('orderType'),notes:fd.get('notes')},items:items.map(i=>({id:i.id,name:i.name,quantity:i.qty,unit:i.unit,price:Number(i.price),lineTotal:Number(i.qty*i.price)})),total:items.reduce((s,i)=>s+i.qty*i.price,0)}; try{const res=await fetch(GOOGLE_SCRIPT_URL,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'text/plain;charset=utf-8'}}); const data=await res.json(); if(data.success){showToast('ההזמנה נשלחה בהצלחה! מספר הזמנה: '+data.orderNumber); cart={};renderCart();e.target.reset();}else throw new Error(data.error||'שגיאה')}catch(err){showToast('שגיאה בשליחת ההזמנה: '+err.message)}});
 loadProducts();
