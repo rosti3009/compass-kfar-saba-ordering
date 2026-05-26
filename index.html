@@ -448,7 +448,7 @@
 </div>
 
 <div class="cart-float"><button class="cart-pill" onclick="scrollToCart()" aria-label="מעבר לסל">סל <span id="cartTotalMini">₪0</span></button></div>
-<button class="wa-float" aria-label="עזרה והזמנה ב-WhatsApp" onclick="openWhatsApp()">💬</button>
+<button class="wa-float" aria-label="שליחת הודעת וואטסאפ לקומפס מעדני בשר" onclick="openWhatsApp()">💬</button>
 
 <button class="accessibility-toggle" id="accessibilityToggle" type="button" aria-label="פתח כלי נגישות" aria-expanded="false" aria-controls="accessibilityPanel">♿ נגישות</button>
 <div class="accessibility-panel" id="accessibilityPanel" aria-hidden="true">
@@ -630,7 +630,7 @@ function normalizeQtyInput(id){const el=document.getElementById('q_'+id); if(!el
 function changeQty(id,delta){const el=document.getElementById('q_'+id); if(!el) return; normalizeQtyInput(id); el.value=Math.max(1,Number(el.value)+delta);}
 function addToCart(id){const p=products.find(x=>String(x.id)===String(id)); if(!p || isSoldout(p))return; const qty=normalizeQtyInput(id); if(!cart[id])cart[id]={...p,qty:0}; cart[id].qty+=qty; renderCart(); showToast('נוסף לסל: '+p.name)}
 function removeItem(id){delete cart[id];renderCart()}
-function openWhatsApp(){window.open('https://wa.me/972000000000?text='+encodeURIComponent('שלום קומפס, אשמח לעזרה עם הזמנה'),'_blank')}
+function openWhatsApp(){window.open('https://wa.me/972549481599','_blank','noopener')}
 function openProductModal(id){const p=products.find(x=>String(x.id)===String(id)); if(!p) return; document.getElementById('modalMedia').innerHTML = imgHtml(p); document.getElementById('modalBody').innerHTML = `<h3>${p.name}</h3><p class="meta">${cleanDesc(p.description)||''}</p><div class="price">${money(p.price)} / ${p.unit||''}</div>${isSoldout(p)?'<div class="soldout-label">אזל מהמלאי</div>':''}`; document.getElementById('productModal').setAttribute('aria-hidden','false');}
 function openModalById(modalId){
   const modal = document.getElementById(modalId);
