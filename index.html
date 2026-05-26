@@ -371,7 +371,25 @@
 
 <script>
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwuHIwl8KeVK5iwNiSu6PtzW_pvmO1K5gnd6pc3fRqzzznhS5Tg5cZaLcmpKwhwMovc/exec';
-let products = []; let cart = {}; let categoryOrder = []; let selectedCategory = 'הכל'; let searchTerm = '';
+const FIXED_CATEGORY_LABELS = [
+  { key: 'בשר טרי', label: '🥩 בשר טרי', rawValues: ['בשר טרי'] },
+  { key: 'בקר קפוא', label: '🥩 בקר קפוא', rawValues: ['בקר קפוא'] },
+  { key: 'כשרויות מהודרות', label: '📦 כשרויות מהודרות', rawValues: ['כשרויות מהודרות'] },
+  { key: 'טחונים ונקניקים', label: '🔥 טחונים ונקניקים', rawValues: ['טחונים ונקניקים'] },
+  { key: 'עופות (קפוא)', label: '🍗 עופות (קפוא)', rawValues: ['עופות (קפוא)', 'עופות', 'עוף טרי'] },
+  { key: 'כבש', label: '🍖 כבש', rawValues: ['כבש'] },
+  { key: 'דגים', label: '🐟 דגים', rawValues: ['דגים'] },
+  { key: 'נלווים', label: '📦 נלווים', rawValues: ['נלווים'] }
+];
+const FIXED_CATEGORY_KEY_BY_RAW = FIXED_CATEGORY_LABELS.reduce((acc, entry) => {
+  entry.rawValues.forEach(raw => acc[raw] = entry.key);
+  return acc;
+}, {});
+const FIXED_CATEGORY_LABEL_BY_KEY = FIXED_CATEGORY_LABELS.reduce((acc, entry) => {
+  acc[entry.key] = entry.label;
+  return acc;
+}, {});
+let products = []; let cart = {}; let dynamicCategoryOrder = []; let selectedCategory = 'הכל'; let searchTerm = '';
 const fallbackProducts = [
  {id:'entrecote',name:'אנטריקוט פרימיום',category:'נתחי בקר',unit:'ק״ג',price:199.9,description:'נתח פרימיום לצלייה',image:'',active:true},
  {id:'picanha',name:'פיקניה',category:'נתחי בקר',unit:'ק״ג',price:171.5,description:'פיקניה איכותית לצלייה',image:'',active:true},
@@ -388,13 +406,43 @@ function isEmptyProductRow(p){return REQUIRED_PRODUCT_COLUMNS.every(key=>String(
 function isValidProductRow(p){return String(p?.id ?? '').trim()!=='' || String(p?.name ?? '').trim()!=='';}
 function normalizeStatus(value){const v=String(value ?? '').trim().toUpperCase(); if(v==='SOLDOUT') return 'SOLDOUT'; if(v===''||v==='TRUE') return 'ACTIVE'; return 'INACTIVE';}
 function normalizeProductRow(row){const normalized = {}; REQUIRED_PRODUCT_COLUMNS.forEach(key=>normalized[key]=String(row?.[key] ?? '').trim()); normalized.price = Number(normalized.price) || 0; normalized.status = normalizeStatus(normalized.active); return normalized;}
-function normalizeProducts(rows){const seenCategories = new Set(); categoryOrder = []; return rows.map(normalizeProductRow).filter(row=>!isEmptyProductRow(row)).filter(isValidProductRow).filter(row=>row.status!=='INACTIVE').map(row=>{const category=String(row.category||'כללי').trim() || 'כללי'; if(!seenCategories.has(category)){seenCategories.add(category); categoryOrder.push(category);} return {...row,category};});}
+function normalizeProducts(rows){
+  const seenDynamicCategories = new Set();
+  dynamicCategoryOrder = [];
+  return rows
+    .map(normalizeProductRow)
+    .filter(row=>!isEmptyProductRow(row))
+    .filter(isValidProductRow)
+    .filter(row=>row.status!=='INACTIVE')
+    .map(row=>{
+      const rawCategory = String(row.category || 'כללי').trim() || 'כללי';
+      const filterCategory = FIXED_CATEGORY_KEY_BY_RAW[rawCategory] || rawCategory;
+      if(!FIXED_CATEGORY_LABEL_BY_KEY[filterCategory] && !seenDynamicCategories.has(filterCategory)){
+        seenDynamicCategories.add(filterCategory);
+        dynamicCategoryOrder.push(filterCategory);
+      }
+      return {...row, rawCategory, filterCategory};
+    });
+}
 function renderSkeletons(){document.getElementById('products').innerHTML = Array.from({length: 8}).map(()=>'<div class="skeleton" aria-hidden="true"></div>').join('');}
 async function loadProducts(){renderSkeletons();try{ if(!GOOGLE_SCRIPT_URL.includes('script.google.com')) throw new Error('no url'); const res=await fetch(GOOGLE_SCRIPT_URL); const data=await res.json(); const fromSheet = Array.isArray(data?.products) ? data.products : []; products = fromSheet.length ? normalizeProducts(fromSheet) : normalizeProducts(fallbackProducts);}catch(e){products=normalizeProducts(fallbackProducts);} renderFilters(); applyFilters();}
-function renderFilters(){const cats=['הכל',...categoryOrder]; document.getElementById('filters').innerHTML=cats.map((c)=>`<button class="chip ${c===selectedCategory?'active':''}" role="tab" aria-selected="${c===selectedCategory}" onclick="setCategory('${c.replace(/'/g, "&#39;")}')">${c}</button>`).join('')}
+function renderFilters(){
+  const fixedCategories = FIXED_CATEGORY_LABELS.map(entry => entry.key);
+  const cats = ['הכל', ...fixedCategories, ...dynamicCategoryOrder];
+  document.getElementById('filters').innerHTML = cats.map((c)=>{
+    const display = FIXED_CATEGORY_LABEL_BY_KEY[c] || c;
+    return `<button class="chip ${c===selectedCategory?'active':''}" role="tab" aria-selected="${c===selectedCategory}" onclick="setCategory('${c.replace(/'/g, "&#39;")}')">${display}</button>`;
+  }).join('');
+}
 function setCategory(cat){selectedCategory = cat; renderFilters(); applyFilters();}
 function onSearch(value){searchTerm = String(value || '').trim().toLowerCase(); applyFilters();}
-function applyFilters(){let list = selectedCategory==='הכל'?products:products.filter(p=>p.category===selectedCategory); if(searchTerm){list = list.filter(p=>`${p.name} ${p.description} ${p.category}`.toLowerCase().includes(searchTerm));} renderProducts(list);}
+function applyFilters(){
+  let list = selectedCategory==='הכל' ? products : products.filter(p=>p.filterCategory===selectedCategory);
+  if(searchTerm){
+    list = list.filter(p=>`${p.name} ${p.description} ${p.rawCategory}`.toLowerCase().includes(searchTerm));
+  }
+  renderProducts(list);
+}
 function cleanDesc(d){return String(d||'').trim();}
 function imgHtml(p){const url=String(p.image||'').trim(); return url ? `<img class="product-img" src="${url}" alt="${p.name||''}" loading="lazy" decoding="async" onerror="this.outerHTML='<div class=\"no-img\" aria-label=\"אין תמונה\"></div>'">` : '<div class="no-img" aria-label="אין תמונה"></div>'}
 function isSoldout(p){return p.status==='SOLDOUT';}
