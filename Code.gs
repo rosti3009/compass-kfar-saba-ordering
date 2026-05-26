@@ -13,6 +13,7 @@ const SPREADSHEET_ID = 'PASTE_KFAR_SABA_SPREADSHEET_ID_HERE';
 
 const WRITE_BACK_LINK = true;
 const LINK_HEADER_NAME = 'קובץ PDF';
+const MARKETING_CONSENT_HEADER_NAME = 'אישור דיוור';
 
 // לפי הבקשה שלך - נשאר האימייל הקיים
 const NOTIFICATION_EMAIL = 'aviv@blucher.co.il';
@@ -39,18 +40,20 @@ function doPost(e) {
     const address = data.address || customer.address || '';
     const orderType = data.orderType || customer.orderType || '';
     const notes = data.notes || customer.notes || '';
+    const marketingConsent = normalizeBoolean_(data.marketingConsent != null ? data.marketingConsent : customer.marketingConsent);
     const items = normalizeItems_(data.items || data.products || []);
     const total = data.total || calculateTotal_(items);
 
     if (!items.length) throw new Error('לא התקבלו מוצרים בהזמנה');
 
     const now = new Date();
-    sheet.appendRow([now, orderNumber, customerName, phone, email, city, address, orderType, notes, JSON.stringify(items, null, 2), total, '']);
+    const rowValues = buildOrderRowValues_(sheet, {now, orderNumber, customerName, phone, email, city, address, orderType, notes, items, total, marketingConsent});
+    sheet.appendRow(rowValues);
     const row = sheet.getLastRow();
 
-    const pdfFile = createOrderPdf_({orderNumber, customerName, phone, email, city, address, orderType, notes, items, total, date: now});
+    const pdfFile = createOrderPdf_({orderNumber, customerName, phone, email, city, address, orderType, notes, items, total, date: now, marketingConsent});
     if (WRITE_BACK_LINK) writeBackLink_(sheet, row, pdfFile.getUrl(), LINK_HEADER_NAME);
-    sendNewOrderNotificationEmail_({orderNumber, customerName, phone, email, city, address, orderType, notes, items, total, date: now}, pdfFile);
+    sendNewOrderNotificationEmail_({orderNumber, customerName, phone, email, city, address, orderType, notes, items, total, date: now, marketingConsent}, pdfFile);
 
     return jsonResponse_({success:true, orderNumber, pdfUrl:pdfFile.getUrl(), emailed:true});
   } catch (err) {
@@ -132,7 +135,47 @@ function calculateTotal_(items) {
   }, 0);
 }
 
-function createOrderPdf_({orderNumber, customerName, phone, email, city, address, orderType, notes, items, total, date}) {
+function normalizeBoolean_(value) {
+  if (typeof value === 'boolean') return value;
+  const normalized = String(value || '').trim().toLowerCase();
+  return normalized === 'true' || normalized === '1' || normalized === 'yes' || normalized === 'on';
+}
+
+function buildOrderRowValues_(sheet, orderData) {
+  const lastCol = Math.max(sheet.getLastColumn(), 1);
+  const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(h => String(h || '').trim());
+  const row = new Array(lastCol).fill('');
+  const setByHeader = (headerName, value) => {
+    const index = headers.findIndex(h => h === headerName);
+    if (index > -1) row[index] = value;
+  };
+
+  setByHeader('תאריך', orderData.now);
+  setByHeader('מספר הזמנה', orderData.orderNumber);
+  setByHeader('שם לקוח', orderData.customerName);
+  setByHeader('טלפון', orderData.phone);
+  setByHeader('אימייל', orderData.email);
+  setByHeader('יישוב', orderData.city);
+  setByHeader('כתובת', orderData.address);
+  setByHeader('סוג הזמנה', orderData.orderType);
+  setByHeader('הערות', orderData.notes);
+  setByHeader('מוצרים', JSON.stringify(orderData.items, null, 2));
+  setByHeader('סה"כ', orderData.total);
+  setByHeader(LINK_HEADER_NAME, '');
+
+  const marketingValue = orderData.marketingConsent ? 'TRUE' : 'FALSE';
+  const marketingIndex = headers.findIndex(h => h === MARKETING_CONSENT_HEADER_NAME);
+  if (marketingIndex === -1) {
+    sheet.getRange(1, lastCol + 1).setValue(MARKETING_CONSENT_HEADER_NAME);
+    row.push(marketingValue);
+  } else {
+    row[marketingIndex] = marketingValue;
+  }
+
+  return row;
+}
+
+function createOrderPdf_({orderNumber, customerName, phone, email, city, address, orderType, notes, items, total, date, marketingConsent}) {
   const folder = DriveApp.getFolderById(FOLDER_ID);
   const safeName = String(customerName).replace(/[\\/:*?"<>|]/g, '-');
   const stamp = Utilities.formatDate(date, Session.getScriptTimeZone(), 'yyyy-MM-dd_HH-mm');
@@ -153,7 +196,7 @@ function createOrderPdf_({orderNumber, customerName, phone, email, city, address
 
   body.appendParagraph('פרטי לקוח').setHeading(DocumentApp.ParagraphHeading.HEADING2).setAlignment(DocumentApp.HorizontalAlignment.RIGHT);
   const customerTable = body.appendTable([
-    ['שדה', 'פרטים'], ['שם לקוח', customerName || ''], ['טלפון', phone || ''], ['אימייל', email || ''], ['יישוב', city || ''], ['כתובת', address || ''], ['סוג הזמנה', orderType || ''], ['הערות', notes || '']
+    ['שדה', 'פרטים'], ['שם לקוח', customerName || ''], ['טלפון', phone || ''], ['אימייל', email || ''], ['יישוב', city || ''], ['כתובת', address || ''], ['סוג הזמנה', orderType || ''], ['הערות', notes || ''], ['אישור דיוור', marketingConsent ? 'כן' : 'לא']
   ]);
   customerTable.getRow(0).editAsText().setBold(true);
 
@@ -185,7 +228,7 @@ function sendNewOrderNotificationEmail_(order, pdfFile) {
   const body = [
     'התקבלה הזמנה חדשה באתר קומפס מעדני בשר כפר סבא.', '',
     `מספר הזמנה: ${order.orderNumber}`, `שם לקוח: ${order.customerName}`, `טלפון: ${order.phone}`, `אימייל: ${order.email || '-'}`,
-    `יישוב: ${order.city || '-'}`, `כתובת: ${order.address || '-'}`, `סוג הזמנה: ${order.orderType || '-'}`, `הערות: ${order.notes || '-'}`,
+    `יישוב: ${order.city || '-'}`, `כתובת: ${order.address || '-'}`, `סוג הזמנה: ${order.orderType || '-'}`, `הערות: ${order.notes || '-'}`, `אישור דיוור: ${order.marketingConsent ? 'כן' : 'לא'}`,
     '', 'מוצרים:', itemsText || '-', '', `סה"כ משוער: ₪${order.total || 0}`,
     `תאריך: ${Utilities.formatDate(order.date, Session.getScriptTimeZone(), 'dd/MM/yyyy HH:mm')}`, '', `קישור לקובץ PDF: ${pdfFile.getUrl()}`
   ].join('\n');
