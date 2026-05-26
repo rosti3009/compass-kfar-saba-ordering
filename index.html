@@ -16,9 +16,11 @@
       --red: #b42020;
       --red-deep: #8f1414;
       --radius: 16px;
+      --green: #25d366;
     }
 
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
       margin: 0;
       background: #000;
@@ -57,13 +59,16 @@
       background: linear-gradient(160deg, var(--red), var(--red-deep));
       color: #fff;
       border-radius: 999px;
-      padding: 9px 14px;
+      padding: 11px 16px;
       font-weight: 700;
       display: inline-flex;
       gap: 6px;
       align-items: center;
       cursor: pointer;
+      transition: transform .2s ease, filter .2s ease;
     }
+
+    .cart-pill:hover, .cart-pill:focus-visible { transform: translateY(-1px); filter: brightness(1.06); }
 
     .brand { text-align: center; }
     .brand h1 { margin: 0; font-size: 1rem; }
@@ -107,13 +112,28 @@
 
     main { padding: 12px; }
 
+    .search-wrap {
+      margin-bottom: 10px;
+      position: sticky;
+      top: 66px;
+      z-index: 58;
+      background: linear-gradient(180deg, rgba(7,7,7,.98), rgba(7,7,7,.9));
+      padding: 6px 0 10px;
+      backdrop-filter: blur(6px);
+    }
+
     .filters {
+      position: sticky;
+      top: 120px;
+      z-index: 57;
       display: flex;
       gap: 8px;
       overflow-x: auto;
-      padding-bottom: 8px;
+      padding: 8px 0 12px;
       scrollbar-width: thin;
       border-bottom: 1px solid #1b1b1b;
+      background: linear-gradient(180deg, rgba(7,7,7,.95), rgba(7,7,7,.86));
+      backdrop-filter: blur(6px);
     }
 
     .chip {
@@ -122,10 +142,12 @@
       border-radius: 999px;
       background: #202020;
       color: #f3f3f3;
-      padding: 7px 12px;
+      padding: 11px 14px;
       cursor: pointer;
       font-size: .92rem;
+      transition: transform .2s ease, background-color .2s ease, border-color .2s ease;
     }
+    .chip:hover, .chip:focus-visible { transform: translateY(-1px); border-color: #5b5b5b; }
     .chip.active { background: linear-gradient(160deg, var(--red), var(--red-deep)); border-color: transparent; }
 
     .section-title { color: var(--gold); margin: 14px 0 10px; font-size: 1.02rem; }
@@ -133,7 +155,7 @@
     .products {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
+      gap: 12px;
     }
 
     .card {
@@ -141,7 +163,15 @@
       border: 1px solid #252525;
       border-radius: 11px;
       overflow: hidden;
+      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+      animation: fadeIn .35s ease;
     }
+    .card:hover, .card:focus-within { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.35); border-color: #343434; }
+    .card.soldout { opacity: .55; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to {opacity:1; transform: translateY(0);} }
+
+    .product-click { border: 0; padding: 0; margin: 0; width: 100%; background: transparent; cursor: pointer; display: block; }
 
     .product-img, .no-img {
       width: 100%;
@@ -166,7 +196,7 @@
     .meta { color: var(--muted); font-size: .82rem; min-height: 2.2em; }
     .price { color: var(--gold); font-size: 1.2rem; font-weight: 800; margin: 6px 0; }
 
-    .qty-row { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: center; }
+    .qty-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
     .stepper {
       display: inline-flex;
       align-items: center;
@@ -180,8 +210,8 @@
       border: 0;
       background: transparent;
       color: #fff;
-      width: 30px;
-      height: 30px;
+      width: 36px;
+      height: 36px;
       cursor: pointer;
       font-size: 1.1rem;
     }
@@ -199,11 +229,22 @@
       background: linear-gradient(160deg, var(--red), var(--red-deep));
       color: white;
       border-radius: 8px;
-      height: 30px;
-      padding: 0 10px;
+      height: 36px;
+      padding: 0 12px;
       font-weight: 700;
       cursor: pointer;
+      transition: transform .2s ease, filter .2s ease;
     }
+    .btn-add:hover, .btn-add:focus-visible { transform: translateY(-1px); filter: brightness(1.08); }
+    .btn-add:disabled { cursor: not-allowed; opacity: .5; }
+
+    .soldout-label { display: inline-block; margin-top: 6px; color: #f0b6b6; font-weight: 700; }
+
+    .skeleton { border-radius: 12px; min-height: 240px; background: linear-gradient(90deg,#171717 25%,#232323 37%,#171717 63%); background-size: 400% 100%; animation: shimmer 1.3s infinite; }
+    @keyframes shimmer { 0% {background-position: 100% 0;} 100% {background-position: 0 0;} }
+
+    .info-grid { display: grid; gap: 12px; margin-top: 18px; }
+    .info-box { background: #101010; border: 1px solid #232323; border-radius: 12px; padding: 12px; }
 
     .cart-box {
       margin-top: 16px;
@@ -218,7 +259,7 @@
       background: var(--panel-2);
       border: 1px solid #343434;
       color: var(--text);
-      padding: 10px;
+      padding: 12px;
       border-radius: 10px;
       font: inherit;
       margin-top: 3px;
@@ -229,46 +270,33 @@
       width: 100%;
       border: 0;
       border-radius: 10px;
-      padding: 11px;
+      padding: 12px;
       color: #fff;
       font-weight: 800;
       background: linear-gradient(160deg, var(--red), var(--red-deep));
       cursor: pointer;
     }
 
-    .footer {
-      margin-top: 24px;
-      border-top: 1px solid #1a1a1a;
-      padding: 16px 10px 24px;
-      text-align: center;
-      color: #d3bc93;
-      font-size: .88rem;
-    }
+    .footer { margin-top: 24px; border-top: 1px solid #1a1a1a; padding: 16px 10px 24px; text-align: center; color: #d3bc93; font-size: .88rem; }
+    .cart-float { position: fixed; left: 10px; bottom: 12px; z-index: 80; }
+    .wa-float { position: fixed; right: 12px; bottom: 18px; z-index: 85; background: var(--green); color: #fff; border-radius: 999px; border: 0; width: 56px; height: 56px; font-size: 1.5rem; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,.35); }
 
-    .cart-float {
-      position: fixed;
-      left: 10px;
-      bottom: 12px;
-      z-index: 80;
-    }
+    .toast { position: fixed; inset: auto 50% 70px auto; transform: translateX(50%); background: #181818; border: 1px solid var(--gold); padding: 9px 12px; border-radius: 10px; display: none; z-index: 99; }
 
-    .toast {
-      position: fixed;
-      inset: auto 50% 70px auto;
-      transform: translateX(50%);
-      background: #181818;
-      border: 1px solid var(--gold);
-      padding: 9px 12px;
-      border-radius: 10px;
-      display: none;
-      z-index: 99;
-    }
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,.72); display: none; z-index: 120; padding: 20px 12px; }
+    .modal[aria-hidden="false"] { display: block; }
+    .modal-content { background: #111; border: 1px solid #2f2f2f; border-radius: 14px; max-width: 540px; margin: 0 auto; overflow: hidden; }
+    .modal-content img { width: 100%; aspect-ratio: 1/1; object-fit: cover; }
+    .modal-body { padding: 12px; }
+
+    :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
     @media (min-width: 760px) {
       .site { width: min(980px, 98vw); }
       .hero { height: 300px; }
       .products { grid-template-columns: repeat(4, minmax(0, 1fr)); }
       .cart-float { left: max(10px, calc((100vw - min(980px, 98vw)) / 2 + 10px)); }
+      .wa-float { right: max(12px, calc((100vw - min(980px, 98vw)) / 2 + 12px)); }
     }
   </style>
 </head>
@@ -276,14 +304,14 @@
 <div class="site">
   <header>
     <div class="topbar">
-      <button class="cart-pill" onclick="scrollToCart()">🛒 <span id="cartCount">0</span></button>
+      <button class="cart-pill" aria-label="מעבר לסל" onclick="scrollToCart()">🛒 <span id="cartCount">0</span></button>
       <div class="brand"><h1>קומפס מעדני בשר</h1><p>COMPASS PREMIUM BUTCHER</p></div>
-      <img class="logo" src="compass-logo.jpeg" alt="קומפס מעדני בשר">
+      <img class="logo" src="assets/compass-logo.jpeg" alt="קומפס מעדני בשר" loading="lazy" decoding="async">
     </div>
   </header>
 
-  <section class="hero">
-    <img src="https://images.unsplash.com/photo-1603048297172-c92544798d5a?auto=format&fit=crop&w=1200&q=80" alt="בשר איכותי">
+  <section class="hero" aria-label="באנר ראשי">
+    <img src="https://images.unsplash.com/photo-1603048297172-c92544798d5a?auto=format&fit=crop&w=1200&q=80" alt="בשר איכותי" loading="lazy" decoding="async">
     <div class="hero-copy">
       <h2>בשר איכותי.<br><span>קומפס מובחר.</span></h2>
       <p>בחרו נתחים טריים להזמנה מהירה לאיסוף או משלוח.</p>
@@ -291,22 +319,38 @@
   </section>
 
   <main>
-    <div id="filters" class="filters"></div>
+    <section class="search-wrap" aria-label="חיפוש וסינון מוצרים">
+      <label for="searchInput">חיפוש מוצרים</label>
+      <input id="searchInput" type="search" placeholder="לדוגמה: אנטריקוט, קבב, טלה" aria-label="חיפוש מוצרים בעברית" oninput="onSearch(this.value)">
+      <div id="filters" class="filters" role="tablist" aria-label="קטגוריות"></div>
+    </section>
+
     <h3 class="section-title">בשר טרי</h3>
-    <div id="products" class="products"><div>טוען מוצרים...</div></div>
+    <section id="products" class="products" aria-live="polite"></section>
+
+    <section class="info-grid" aria-label="מידע לחנות">
+      <div class="info-box">
+        <h3 class="section-title">שעות פתיחה</h3>
+        <p>ראשון-חמישי 10:00-21:00<br>שישי 09:00-14:30<br>שבת 20:30-22:00</p>
+      </div>
+      <div class="info-box">
+        <h3 class="section-title">איסוף ומשלוח</h3>
+        <p>איסוף עצמי מכפר סבא בתיאום מראש. משלוחים באזור כפר סבא והסביבה בהתאם לזמינות. זמן הכנה ממוצע: עד 90 דקות.</p>
+      </div>
+    </section>
 
     <section id="cartSection" class="cart-box">
       <h2>הסל שלי</h2>
       <div id="cartItems" class="meta">עדיין לא נבחרו מוצרים</div>
       <div class="price" id="cartTotal">₪0</div>
       <form id="orderForm">
-        <label>שם מלא *</label><input name="name" required>
-        <label>טלפון *</label><input name="phone" required>
-        <label>אימייל</label><input name="email" type="email">
-        <label>יישוב</label><input name="city" value="כפר סבא">
-        <label>כתובת</label><input name="address">
-        <label>סוג הזמנה</label><select name="orderType"><option>איסוף עצמי</option><option>משלוח</option></select>
-        <label>הערות</label><textarea name="notes" rows="3"></textarea>
+        <label>שם מלא *</label><input name="name" required aria-label="שם מלא">
+        <label>טלפון *</label><input name="phone" required aria-label="טלפון">
+        <label>אימייל</label><input name="email" type="email" aria-label="אימייל">
+        <label>יישוב</label><input name="city" value="כפר סבא" aria-label="יישוב">
+        <label>כתובת</label><input name="address" aria-label="כתובת">
+        <label>סוג הזמנה</label><select name="orderType" aria-label="סוג הזמנה"><option>איסוף עצמי</option><option>משלוח</option></select>
+        <label>הערות</label><textarea name="notes" rows="3" aria-label="הערות"></textarea>
         <button class="submit" type="submit">שליחת הזמנה</button>
       </form>
     </section>
@@ -315,38 +359,52 @@
   </main>
 </div>
 
-<div class="cart-float"><button class="cart-pill" onclick="scrollToCart()">סל <span id="cartTotalMini">₪0</span></button></div>
-<div class="toast" id="toast"></div>
+<div class="cart-float"><button class="cart-pill" onclick="scrollToCart()" aria-label="מעבר לסל">סל <span id="cartTotalMini">₪0</span></button></div>
+<button class="wa-float" aria-label="עזרה והזמנה ב-WhatsApp" onclick="openWhatsApp()">💬</button>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="modal" id="productModal" aria-hidden="true" onclick="closeModal(event)">
+  <div class="modal-content" role="dialog" aria-modal="true" aria-label="פרטי מוצר">
+    <div id="modalMedia"></div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
 
 <script>
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwuHIwl8KeVK5iwNiSu6PtzW_pvmO1K5gnd6pc3fRqzzznhS5Tg5cZaLcmpKwhwMovc/exec';
-let products = []; let cart = {}; let categoryOrder = [];
+let products = []; let cart = {}; let categoryOrder = []; let selectedCategory = 'הכל'; let searchTerm = '';
 const fallbackProducts = [
  {id:'entrecote',name:'אנטריקוט פרימיום',category:'נתחי בקר',unit:'ק״ג',price:199.9,description:'נתח פרימיום לצלייה',image:'',active:true},
  {id:'picanha',name:'פיקניה',category:'נתחי בקר',unit:'ק״ג',price:171.5,description:'פיקניה איכותית לצלייה',image:'',active:true},
  {id:'denver',name:'דנוור סטייק',category:'סטייקים',unit:'ק״ג',price:139.9,description:'סטייק דנוור עסיסי',image:'',active:true},
  {id:'flatiron',name:'פלאט איירון',category:'סטייקים',unit:'ק״ג',price:199.9,description:'נתח רך ומיוחד',image:'',active:true},
- {id:'asado',name:'אסאדו',category:'נתחי בקר',unit:'ק״ג',price:100.3,description:'לבישול ארוך/גריל',image:'',active:true},
+ {id:'asado',name:'אסאדו',category:'נתחי בקר',unit:'ק״ג',price:100.3,description:'לבישול ארוך/גריל',image:'',active:'SOLDOUT'},
  {id:'kebab',name:'קבב עגל טלה',category:'קצבייה',unit:'מארז',price:65,description:'מארז קבב איכותי',image:'',active:true}
 ];
-// Required product columns from Google Sheets: id, category, name, price, unit, description, image, active
 const REQUIRED_PRODUCT_COLUMNS = ['id','category','name','price','unit','description','image','active'];
 function money(n){return '₪'+(Number(n)||0).toLocaleString('he-IL',{maximumFractionDigits:1})}
 function showToast(t){const el=document.getElementById('toast');el.textContent=t;el.style.display='block';setTimeout(()=>el.style.display='none',3500)}
 function scrollToCart(){document.getElementById('cartSection').scrollIntoView({behavior:'smooth',block:'start'})}
 function isEmptyProductRow(p){return REQUIRED_PRODUCT_COLUMNS.every(key=>String(p?.[key] ?? '').trim()==='');}
-function isActiveProduct(value){const v=String(value ?? '').trim().toLowerCase(); return v==='' || v==='true';}
-function normalizeProductRow(row){const normalized = {}; REQUIRED_PRODUCT_COLUMNS.forEach(key=>normalized[key]=row?.[key] ?? ''); normalized.price = Number(normalized.price) || 0; return normalized;}
-function normalizeProducts(rows){const seenCategories = new Set(); categoryOrder = []; return rows.map(normalizeProductRow).filter(row=>!isEmptyProductRow(row)).filter(row=>isActiveProduct(row.active)).map(row=>{const category=String(row.category||'כללי').trim() || 'כללי'; if(!seenCategories.has(category)){seenCategories.add(category); categoryOrder.push(category);} return {...row,category};});}
-async function loadProducts(){try{ if(!GOOGLE_SCRIPT_URL.includes('script.google.com')) throw new Error('no url'); const res=await fetch(GOOGLE_SCRIPT_URL); const data=await res.json(); const fromSheet = Array.isArray(data?.products) ? data.products : []; products = fromSheet.length ? normalizeProducts(fromSheet) : normalizeProducts(fallbackProducts);}catch(e){products=normalizeProducts(fallbackProducts);} renderFilters(); renderProducts(products);}
-function renderFilters(){const cats=['הכל',...categoryOrder]; document.getElementById('filters').innerHTML=cats.map((c,i)=>`<button class="chip ${i===0?'active':''}" onclick="filterCat('${c.replace(/'/g, "&#39;")}',this)">${c}</button>`).join('')}
-function filterCat(cat,btn){document.querySelectorAll('.chip').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderProducts(cat==='הכל'?products:products.filter(p=>p.category===cat));}
+function normalizeStatus(value){const v=String(value ?? '').trim().toUpperCase(); if(v==='SOLDOUT') return 'SOLDOUT'; if(v===''||v==='TRUE') return 'ACTIVE'; return 'INACTIVE';}
+function normalizeProductRow(row){const normalized = {}; REQUIRED_PRODUCT_COLUMNS.forEach(key=>normalized[key]=row?.[key] ?? ''); normalized.price = Number(normalized.price) || 0; normalized.status = normalizeStatus(normalized.active); return normalized;}
+function normalizeProducts(rows){const seenCategories = new Set(); categoryOrder = []; return rows.map(normalizeProductRow).filter(row=>!isEmptyProductRow(row)).filter(row=>row.status!=='INACTIVE').map(row=>{const category=String(row.category||'כללי').trim() || 'כללי'; if(!seenCategories.has(category)){seenCategories.add(category); categoryOrder.push(category);} return {...row,category};});}
+function renderSkeletons(){document.getElementById('products').innerHTML = Array.from({length: 8}).map(()=>'<div class="skeleton" aria-hidden="true"></div>').join('');}
+async function loadProducts(){renderSkeletons();try{ if(!GOOGLE_SCRIPT_URL.includes('script.google.com')) throw new Error('no url'); const res=await fetch(GOOGLE_SCRIPT_URL); const data=await res.json(); const fromSheet = Array.isArray(data?.products) ? data.products : []; products = fromSheet.length ? normalizeProducts(fromSheet) : normalizeProducts(fallbackProducts);}catch(e){products=normalizeProducts(fallbackProducts);} renderFilters(); applyFilters();}
+function renderFilters(){const cats=['הכל',...categoryOrder]; document.getElementById('filters').innerHTML=cats.map((c)=>`<button class="chip ${c===selectedCategory?'active':''}" role="tab" aria-selected="${c===selectedCategory}" onclick="setCategory('${c.replace(/'/g, "&#39;")}')">${c}</button>`).join('')}
+function setCategory(cat){selectedCategory = cat; renderFilters(); applyFilters();}
+function onSearch(value){searchTerm = String(value || '').trim().toLowerCase(); applyFilters();}
+function applyFilters(){let list = selectedCategory==='הכל'?products:products.filter(p=>p.category===selectedCategory); if(searchTerm){list = list.filter(p=>`${p.name} ${p.description} ${p.category}`.toLowerCase().includes(searchTerm));} renderProducts(list);}
 function cleanDesc(d){return String(d||'').trim();}
-function imgHtml(p){const url=String(p.image||'').trim(); return url ? `<img class="product-img" src="${url}" alt="${p.name||''}" loading="lazy" onerror="this.outerHTML='<div class=\"no-img\" aria-label=\"אין תמונה\"></div>'">` : '<div class="no-img" aria-label="אין תמונה"></div>'}
-function renderProducts(list){document.getElementById('products').innerHTML=list.map(p=>{const desc=cleanDesc(p.description);return `<div class="card">${imgHtml(p)}<div class="product-body"><h3>${p.name||''}</h3>${desc?`<div class="meta">${desc}</div>`:''}<div class="price">${money(p.price)} / ${p.unit||''}</div><div class="qty-row"><div class="stepper"><button onclick="changeQty('${p.id}',-1)" type="button">-</button><input id="q_${p.id}" type="number" min="1" step="1" value="1"><button onclick="changeQty('${p.id}',1)" type="button">+</button></div><button class="btn-add" onclick="addToCart('${p.id}')" type="button">+ הוסף</button></div></div></div>`}).join('')}
+function imgHtml(p){const url=String(p.image||'').trim(); return url ? `<img class="product-img" src="${url}" alt="${p.name||''}" loading="lazy" decoding="async" onerror="this.outerHTML='<div class=\"no-img\" aria-label=\"אין תמונה\"></div>'">` : '<div class="no-img" aria-label="אין תמונה"></div>'}
+function isSoldout(p){return p.status==='SOLDOUT';}
+function renderProducts(list){if(!list.length){document.getElementById('products').innerHTML='<p>לא נמצאו מוצרים לתוצאה המבוקשת.</p>'; return;} document.getElementById('products').innerHTML=list.map(p=>{const desc=cleanDesc(p.description); const sold=isSoldout(p); return `<article class="card ${sold?'soldout':''}" tabindex="0"><button class="product-click" type="button" onclick="openProductModal('${p.id}')" aria-label="פתח פרטי מוצר ${p.name||''}">${imgHtml(p)}</button><div class="product-body"><h3>${p.name||''}</h3>${desc?`<div class="meta">${desc}</div>`:''}<div class="price">${money(p.price)} / ${p.unit||''}</div>${sold?'<span class="soldout-label">אזל מהמלאי</span>':`<div class="qty-row"><div class="stepper"><button onclick="changeQty('${p.id}',-1)" type="button" aria-label="הפחת כמות">-</button><input id="q_${p.id}" type="number" min="1" step="1" value="1" aria-label="כמות ${p.name||''}"><button onclick="changeQty('${p.id}',1)" type="button" aria-label="הגדל כמות">+</button></div><button class="btn-add" onclick="addToCart('${p.id}')" type="button">+ הוסף</button></div>`}</div></article>`}).join('')}
 function changeQty(id,delta){const el=document.getElementById('q_'+id); if(!el) return; el.value=Math.max(1,(Number(el.value)||1)+delta);}
-function addToCart(id){const p=products.find(x=>String(x.id)===String(id)); if(!p)return; const qty=Math.max(1,Number(document.getElementById('q_'+id).value)||1); if(!cart[id])cart[id]={...p,qty:0}; cart[id].qty+=qty; renderCart(); showToast('נוסף לסל: '+p.name)}
+function addToCart(id){const p=products.find(x=>String(x.id)===String(id)); if(!p || isSoldout(p))return; const qty=Math.max(1,Number(document.getElementById('q_'+id).value)||1); if(!cart[id])cart[id]={...p,qty:0}; cart[id].qty+=qty; renderCart(); showToast('נוסף לסל: '+p.name)}
 function removeItem(id){delete cart[id];renderCart()}
+function openWhatsApp(){window.open('https://wa.me/972000000000?text='+encodeURIComponent('שלום קומפס, אשמח לעזרה עם הזמנה'),'_blank')}
+function openProductModal(id){const p=products.find(x=>String(x.id)===String(id)); if(!p) return; document.getElementById('modalMedia').innerHTML = imgHtml(p); document.getElementById('modalBody').innerHTML = `<h3>${p.name}</h3><p class="meta">${cleanDesc(p.description)||''}</p><div class="price">${money(p.price)} / ${p.unit||''}</div>${isSoldout(p)?'<div class="soldout-label">אזל מהמלאי</div>':''}`; document.getElementById('productModal').setAttribute('aria-hidden','false');}
+function closeModal(event){if(event.target.id==='productModal'){document.getElementById('productModal').setAttribute('aria-hidden','true');}}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.getElementById('productModal').setAttribute('aria-hidden','true');}});
 function renderCart(){const items=Object.values(cart); const box=document.getElementById('cartItems'); if(!items.length){box.className='meta';box.innerHTML='עדיין לא נבחרו מוצרים'}else{box.className='';box.innerHTML=items.map(i=>`<div style="border-bottom:1px solid #2a2a2a;padding:6px 0"><b>${i.name}</b><br>${i.qty} ${i.unit||''} × ${money(i.price)} = ${money(i.qty*i.price)}<br><button class="chip" onclick="removeItem('${i.id}')">הסר</button></div>`).join('')} const total=items.reduce((s,i)=>s+i.qty*i.price,0); document.getElementById('cartTotal').textContent=money(total); document.getElementById('cartTotalMini').textContent=money(total); document.getElementById('cartCount').textContent=items.length;}
 document.getElementById('orderForm').addEventListener('submit',async e=>{e.preventDefault(); const items=Object.values(cart); if(!items.length){showToast('צריך לבחור לפחות מוצר אחד');return} if(!GOOGLE_SCRIPT_URL.includes('script.google.com')){showToast('צריך להכניס קודם את קישור Apps Script בקובץ');return} const fd=new FormData(e.target); const payload={customer:{name:fd.get('name'),phone:fd.get('phone'),email:fd.get('email'),city:fd.get('city'),address:fd.get('address'),orderType:fd.get('orderType'),notes:fd.get('notes')},items:items.map(i=>({id:i.id,name:i.name,quantity:i.qty,unit:i.unit,price:Number(i.price),lineTotal:Number(i.qty*i.price)})),total:items.reduce((s,i)=>s+i.qty*i.price,0)}; try{const res=await fetch(GOOGLE_SCRIPT_URL,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'text/plain;charset=utf-8'}}); const data=await res.json(); if(data.success){showToast('ההזמנה נשלחה בהצלחה! מספר הזמנה: '+data.orderNumber); cart={};renderCart();e.target.reset();}else throw new Error(data.error||'שגיאה')}catch(err){showToast('שגיאה בשליחת ההזמנה: '+err.message)}});
 loadProducts();
