@@ -399,17 +399,33 @@ const fallbackProducts = [
  {id:'kebab',name:'קבב עגל טלה',category:'קצבייה',unit:'מארז',price:65,description:'מארז קבב איכותי',image:'',active:true}
 ];
 const REQUIRED_PRODUCT_COLUMNS = ['id','category','name','price','unit','description','image','active'];
+const CATEGORY_ONLY_LABELS = new Set(['הכל', 'נתחי בקר', 'סטייקים', 'קצבייה']);
 function money(n){return '₪'+(Number(n)||0).toLocaleString('he-IL',{maximumFractionDigits:1})}
 function showToast(t){const el=document.getElementById('toast');el.textContent=t;el.style.display='block';setTimeout(()=>el.style.display='none',3500)}
 function scrollToCart(){document.getElementById('cartSection').scrollIntoView({behavior:'smooth',block:'start'})}
 function isEmptyProductRow(p){return REQUIRED_PRODUCT_COLUMNS.every(key=>String(p?.[key] ?? '').trim()==='');}
-function isValidProductRow(p){return String(p?.id ?? '').trim()!=='' || String(p?.name ?? '').trim()!=='';}
+function isCategoryOnlyLabel(value){return CATEGORY_ONLY_LABELS.has(String(value ?? '').trim());}
+function isValidProductRow(p){
+  const id = String(p?.id ?? '').trim();
+  const category = String(p?.category ?? '').trim();
+  const name = String(p?.name ?? '').trim();
+  if(!name) return false;
+  if(isCategoryOnlyLabel(name) || isCategoryOnlyLabel(category) || isCategoryOnlyLabel(id)) return false;
+  if(!id && name===category) return false;
+  return true;
+}
 function normalizeStatus(value){const v=String(value ?? '').trim().toUpperCase(); if(v==='SOLDOUT') return 'SOLDOUT'; if(v===''||v==='TRUE') return 'ACTIVE'; return 'INACTIVE';}
-function normalizeProductRow(row){const normalized = {}; REQUIRED_PRODUCT_COLUMNS.forEach(key=>normalized[key]=String(row?.[key] ?? '').trim()); normalized.price = Number(normalized.price) || 0; normalized.status = normalizeStatus(normalized.active); return normalized;}
+function normalizePrice(value){
+  const cleaned = String(value ?? '').replace(/₪/g,'').replace(/,/g,'').trim();
+  const parsed = Number(cleaned);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+function normalizeProductRow(row){const normalized = {}; REQUIRED_PRODUCT_COLUMNS.forEach(key=>normalized[key]=String(row?.[key] ?? '').trim()); normalized.price = normalizePrice(normalized.price); normalized.status = normalizeStatus(normalized.active); return normalized;}
 function normalizeProducts(rows){
   const seenDynamicCategories = new Set();
+  const seenFixedCategories = new Set();
   dynamicCategoryOrder = [];
-  return rows
+  const normalized = rows
     .map(normalizeProductRow)
     .filter(row=>!isEmptyProductRow(row))
     .filter(isValidProductRow)
@@ -417,18 +433,24 @@ function normalizeProducts(rows){
     .map(row=>{
       const rawCategory = String(row.category || 'כללי').trim() || 'כללי';
       const filterCategory = FIXED_CATEGORY_KEY_BY_RAW[rawCategory] || rawCategory;
-      if(!FIXED_CATEGORY_LABEL_BY_KEY[filterCategory] && !seenDynamicCategories.has(filterCategory)){
+      if(FIXED_CATEGORY_LABEL_BY_KEY[filterCategory]){
+        seenFixedCategories.add(filterCategory);
+      }else if(!seenDynamicCategories.has(filterCategory)){
         seenDynamicCategories.add(filterCategory);
         dynamicCategoryOrder.push(filterCategory);
       }
       return {...row, rawCategory, filterCategory};
     });
+  window.availableFixedCategories = seenFixedCategories;
+  return normalized;
 }
 function renderSkeletons(){document.getElementById('products').innerHTML = Array.from({length: 8}).map(()=>'<div class="skeleton" aria-hidden="true"></div>').join('');}
 async function loadProducts(){renderSkeletons();try{ if(!GOOGLE_SCRIPT_URL.includes('script.google.com')) throw new Error('no url'); const res=await fetch(GOOGLE_SCRIPT_URL); const data=await res.json(); const fromSheet = Array.isArray(data?.products) ? data.products : []; products = fromSheet.length ? normalizeProducts(fromSheet) : normalizeProducts(fallbackProducts);}catch(e){products=normalizeProducts(fallbackProducts);} renderFilters(); applyFilters();}
 function renderFilters(){
-  const fixedCategories = FIXED_CATEGORY_LABELS.map(entry => entry.key);
+  const availableFixed = window.availableFixedCategories || new Set();
+  const fixedCategories = FIXED_CATEGORY_LABELS.map(entry => entry.key).filter(key=>availableFixed.has(key));
   const cats = ['הכל', ...fixedCategories, ...dynamicCategoryOrder];
+  if(selectedCategory!=='הכל' && !cats.includes(selectedCategory)) selectedCategory = 'הכל';
   document.getElementById('filters').innerHTML = cats.map((c)=>{
     const display = FIXED_CATEGORY_LABEL_BY_KEY[c] || c;
     return `<button class="chip ${c===selectedCategory?'active':''}" role="tab" aria-selected="${c===selectedCategory}" onclick="setCategory('${c.replace(/'/g, "&#39;")}')">${display}</button>`;
