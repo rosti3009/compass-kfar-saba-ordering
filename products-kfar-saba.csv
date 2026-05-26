@@ -1,0 +1,53 @@
+﻿id,category,name,price,unit,description,image,active
+entrecote_pairs,בשר טרי,אנטריקוט פרימיום זוגות,350,"ק""ג",מגיע בזוגות כ 600 גרם למארז,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/82a39a14-d5c8-11ef-8975-8a14f29786b2_________________________.png?w=600,True
+sirloin_pairs,בשר טרי,אנטריקוט סינטה זוגות,249,"ק""ג",16,"https://cdn.istores.co.il/image/upload/if_ar_gt_2:1/c_mpad,h_452,w_452,q_100/c_fill,h_452,w_525/if_else/c_pad,h_452,q_100,w_452/if_end/clients/17057/540346b731436b9390cc40bcd077f892fed4a3b8.png",True
+asado_boneless,בשר טרי,אסאדו ללא עצם,119.9,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/shared/abadc7da-f4c9-11ee-ba79-361c6825af25_9d898d8675ecc39982c53cabb5f48740.jpg?w=600,True
+denver_angus,בשר טרי,דנוור סטייק אנגוס,225,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/167bad42-f80e-11ee-ac11-9e22e2fe022c_whatsapp_image_2024_04_11_at_17.13.57.jpeg,True
+sirloin_vacuum,בשר טרי,סינטה פרימיום וואקום,199,"ק""ג",מארז כ 600 גרם ,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/efc3cdca-d4d9-11ef-a287-d6f51d176f07____________.png?w=600,True
+brisket_point,בשר טרי,פוינט בריסקט,84.9,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/e21906c0-d198-11ef-ab16-16646bcb53ba_____________.jpg?w=600,True
+veal_fillet,בשר טרי,פילה עגל,349.9,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/8882031e-d5d5-11ef-a24c-1eb847908c8a_____________.png?w=600,True
+picanha,בשר טרי,סטייק פיקניה,185,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/shared/079ec1fa-f4c7-11ee-b17a-82965470cde5_____________.jpg?w=600,True
+chuck_5,בשר טרי,צלי כתף מס 5,119,"ק""ג",16,,True
+osso_buco,בקר קפוא,אוסובוקו פרוס,85,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/1e5f9ffc-d5d3-11ef-924b-66dccf068336______________.png?w=600,True
+goulash,בקר קפוא,גולש בקר,75,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/c3cc0048-75cf-11ef-949d-22ed7b1fff6b_whatsapp_image_2024_09_18_at_17.34.45.jpeg?w=600,True
+asado_block,בקר קפוא,גוש אסאדו,129,"ק""ג",16,,True
+marrow_bones,בקר קפוא,עצמות מח,109,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/a48b5ad6-d5d2-11ef-9d98-aad3be23b0ee________________.png?w=600,True
+salami_italian,בקר קפוא,סלאמי איטלקי,236,"ק""ג",16,,True
+short_ribs_cubes,בקר קפוא,ספר ריבס קוביות,249,"ק""ג",16,,True
+prime_rib,בקר קפוא,פריים ריב אנטריקוט עם עצם,209,"ק""ג",16,,True
+beef_tongue,בקר קפוא,לשון בקר,99,"ק""ג",16,,True
+carpaccio,בקר קפוא,קרפציו,39,יחידה,16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/52eeace4-d4da-11ef-8d63-de6738411e2c_______.png?w=600,True
+chuck_sliced,בקר קפוא,צלי כתף פרוס 5,135.9,"ק""ג",16,,True
+mock_fillet,בקר קפוא,פילה מדומה,79.9,"ק""ג",16,,True
+sharb_angus,בקר קפוא,שארב אנגוס,59.9,"ק""ג",16,,True
+entrecote_badaz,כשרויות מהודרות,אנטריקוט פרימיום זוגות,235,"ק""ג",16,https://imageproxy.wolt.com/assets/69ef3a11f57703aa9380f547?w=600,True
+ground_angus,טחונים ונקניקים,המבורגר 220 גרם,85,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/4b991bba-d4d9-11ef-b716-4ae62250c328_________220.png?w=600,True
+ground_beef,טחונים ונקניקים,טחון בקר,82,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/4eee621e-f80e-11ee-b1f8-e2e1e6b037c6_whatsapp_image_2024_04_11_at_17.16.25.jpeg?w=600,True
+ground_mix,טחונים ונקניקים,טחון עגל ושומן כבש,85,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/4eee621e-f80e-11ee-b1f8-e2e1e6b037c6_whatsapp_image_2024_04_11_at_17.16.25.jpeg?w=600,True
+kebab_romani,טחונים ונקניקים,קבב רומני,85,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/shared/c2afed30-f4c6-11ee-a3b4-a277ca351235__________.jpg?w=600,True
+kebab_mix,טחונים ונקניקים,קבב עגל וטלה,75,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/shared/c4d7b3cc-f4c6-11ee-9ce7-068c460f45e2____________.jpg?w=600,True
+kebab_cinnamon,טחונים ונקניקים,קבב קינמון,79,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/c1453f7a-d4d8-11ef-b87d-b226f8e29368___________.png?w=600,True
+churisouse_home,טחונים ונקניקים,צוריסוס,65,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/fe11c8a2-d4d7-11ef-9285-8ec3e03c252c____________________.jpg?w=600,True
+meatballs,טחונים ונקניקים,קציצות עגל,75,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/shared/899addde-f4c6-11ee-a7df-eedecc0a5751___________.jpg?w=600,True
+maragez,טחונים ונקניקים,מרגז,75,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/7067571e-d4d8-11ef-af0f-be1bb6b316fb_____.jpg?w=600,True
+meatballs_italian,טחונים ונקניקים,קציצות עירקיות,75,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/2ee7b9aa-d4d8-11ef-ba67-66ea56fbb29d____________________.jpg?w=600,True
+goose_breast,עופות,חזה אווז,199,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/f562d002-f805-11ee-8ead-36b2e4216f5d_whatsapp_image_2024_04_11_at_16.18.02.jpeg,True
+chicken_schnitzel,עופות,חזות עוף שניצל,67,"ק""ג",16,,True
+chicken_liver,עוף טרי,כבד עוף,29,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/c89d77f4-7364-11ef-8d8f-76b9e2ca7acc________.jpg?w=600,True
+hearts,עוף טרי,לבבות,40,"ק""ג",16,,True
+wings,עוף טרי,כנפיים,24,"ק""ג",16,,True
+wings_spicy,עוף טרי,כנפיים מתובל,35,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/aae9345a-d4da-11ef-81c8-a61ffea7e325_____________.png?w=600,True
+thighs,עוף טרי,כרעיים,35,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/08c10c56-7351-11ef-9a40-e6e04ba7821b___________.jpg?w=600,True
+drumsticks_net,עוף טרי,שוקיים,23.6,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/9b2f454c-7358-11ef-b8e0-128fddcdc790_image_removebg_preview__1_.png?w=600,True
+chicken_fillet,עוף טרי,פילה עוף,54.9,"ק""ג",16,,True
+skewers,עוף טרי,שיפודי פרגית,89.9,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/22097b94-d4db-11ef-ac88-aa4ac7b55f0b______________________.png?w=600,True
+skewers_spicy,עוף טרי,שיפודי פרגית מתובל,89.9,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/e1628cf4-d5cd-11ef-8113-8a9221b9541f___________________.png?w=600,True
+drumsticks,עוף טרי,שוקיים,35,"ק""ג",16,,True
+lamb_ribs,כבש,צלעות טלה,285,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/shared/d0e3d6a0-f4c6-11ee-bd6b-e640d3f7370b__________.jpg?w=600,True
+lamb_shoulder,כבש,כתף טלה,147.5,"ק""ג",16,https://imageproxy.wolt.com/assets/699ec9a3ea4a83292eef4fd5?w=600,True
+salmon,דגים,מנות סלמון,99.9,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/84461ef2-735b-11ef-aebc-06e87d63d581_image_removebg_preview__3_.png?w=600,True
+tilapia,דגים,אמנון,25,"ק""ג",16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/b249ef3a-735c-11ef-9b92-268dc35af9ff_image_removebg_preview__2_.png?w=600,True
+tongue_plate,נלווים,פלט לעישון,135,יחידה,16,,True
+addon1,נלווים,פחם,28,יחידה,16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/4adc8276-2401-11f0-9c17-9e71478523c4_____2________.png?w=600,True
+smoke_box,נלווים,קופסת עישון,75,יחידה,16,https://imageproxy.wolt.com/menu/menu-images/660d0e4c2f87827166dd9c33/8fca4b52-af3a-11ef-9ee0-eaff19caae1a_img_202411201.jpg?w=600,True
+addon2,נלווים,מוצר נלווה,62,יחידה,16,,True
