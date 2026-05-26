@@ -333,6 +333,12 @@
     .legal-content { padding: 14px 12px; overflow-y: auto; color: #e9dfce; line-height: 1.6; }
     .legal-content h4 { color: var(--gold); margin: 12px 0 6px; }
     .legal-content p, .legal-content li { margin: 0 0 8px; }
+    .consent-list { margin: 0; padding-inline-start: 18px; display: grid; gap: 6px; }
+    .consent-checks { display: grid; gap: 10px; margin-top: 12px; }
+    .consent-checks label { display: flex; gap: 8px; align-items: flex-start; line-height: 1.5; }
+    .consent-checks input[type="checkbox"] { margin-top: 3px; }
+    .consent-submit-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+    .consent-submit-row .chip { padding: 9px 14px; }
 
     :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
@@ -524,6 +530,36 @@
     </div>
   </div>
 </div>
+<div class="modal legal-modal" id="consentModal" aria-hidden="true" onclick="closeModal(event)">
+  <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="consentTitle">
+    <div class="modal-head">
+      <h3 id="consentTitle">אישור שמירת פרטים והסכמה שיווקית</h3>
+      <button class="modal-close" type="button" data-close-modal aria-label="סגור חלון אישור">✕</button>
+    </div>
+    <div class="legal-content">
+      <ul class="consent-list">
+        <li>פרטי ההזמנה נשמרים אצל קומפס מעדני בשר לצורך טיפול בהזמנה, יצירת קשר, תיעוד ושירות לקוחות.</li>
+        <li>הפרטים כוללים שם, טלפון, אימייל אם הוזן, כתובת אם הוזנה, סוג הזמנה, הערות, מוצרים וסכום משוער.</li>
+        <li>שימוש בפרטים לצורכי פרסום/דיוור/מבצעים ייעשה רק אם הלקוח נתן הסכמה מפורשת.</li>
+        <li>ניתן לבקש הסרה מרשימות דיוור בכל עת.</li>
+      </ul>
+      <div class="consent-checks">
+        <label for="requiredOrderConsent">
+          <input id="requiredOrderConsent" name="requiredOrderConsent" type="checkbox" required>
+          <span>אני מאשר/ת את שמירת פרטי ההזמנה לצורך טיפול בהזמנה.</span>
+        </label>
+        <label for="marketingConsent">
+          <input id="marketingConsent" name="marketingConsent" type="checkbox">
+          <span>אני מאשר/ת לקבל עדכונים, מבצעים והודעות שיווקיות מקומפס מעדני בשר.</span>
+        </label>
+      </div>
+      <div class="consent-submit-row">
+        <button type="button" class="chip" data-close-modal>חזרה לעריכה</button>
+        <button type="button" class="submit" id="confirmOrderBtn">אישור ושליחה</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwuHIwl8KeVK5iwNiSu6PtzW_pvmO1K5gnd6pc3fRqzzznhS5Tg5cZaLcmpKwhwMovc/exec';
@@ -690,7 +726,11 @@ document.querySelectorAll('[data-a11y-action]').forEach(btn=>{
 });
 
 function renderCart(){const items=Object.values(cart); const box=document.getElementById('cartItems'); if(!items.length){box.className='meta';box.innerHTML='עדיין לא נבחרו מוצרים'}else{box.className='';box.innerHTML=items.map(i=>`<div style="border-bottom:1px solid #2a2a2a;padding:6px 0"><b>${i.name}</b><br>${i.qty} ${i.unit||''} × ${money(i.price)} = ${money(i.qty*i.price)}<br><button class="chip" onclick="removeItem('${i.id}')">הסר</button></div>`).join('')} const total=items.reduce((s,i)=>s+i.qty*i.price,0); document.getElementById('cartTotal').textContent=money(total); document.getElementById('cartTotalMini').textContent=money(total); document.getElementById('cartCount').textContent=items.length;}
-document.getElementById('orderForm').addEventListener('submit',async e=>{e.preventDefault(); const items=Object.values(cart); if(!items.length){showToast('צריך לבחור לפחות מוצר אחד');return} if(!GOOGLE_SCRIPT_URL.includes('script.google.com')){showToast('צריך להכניס קודם את קישור Apps Script בקובץ');return} const fd=new FormData(e.target); const payload={customer:{name:fd.get('name'),phone:fd.get('phone'),email:fd.get('email'),city:fd.get('city'),address:fd.get('address'),orderType:fd.get('orderType'),notes:fd.get('notes')},items:items.map(i=>({id:i.id,name:i.name,quantity:i.qty,unit:i.unit,price:Number(i.price),lineTotal:Number(i.qty*i.price)})),total:items.reduce((s,i)=>s+i.qty*i.price,0)}; try{const res=await fetch(GOOGLE_SCRIPT_URL,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'text/plain;charset=utf-8'}}); const data=await res.json(); if(data.success){showToast('ההזמנה נשלחה בהצלחה! מספר הזמנה: '+data.orderNumber); cart={};renderCart();e.target.reset();}else throw new Error(data.error||'שגיאה')}catch(err){showToast('שגיאה בשליחת ההזמנה: '+err.message)}});
+function buildOrderPayload(formEl){const items=Object.values(cart); const fd=new FormData(formEl); return {customer:{name:fd.get('name'),phone:fd.get('phone'),email:fd.get('email'),city:fd.get('city'),address:fd.get('address'),orderType:fd.get('orderType'),notes:fd.get('notes')},items:items.map(i=>({id:i.id,name:i.name,quantity:i.qty,unit:i.unit,price:Number(i.price),lineTotal:Number(i.qty*i.price)})),total:items.reduce((s,i)=>s+i.qty*i.price,0),marketingConsent:fd.get('marketingConsent')==='on'};}
+async function submitOrder(formEl){const payload=buildOrderPayload(formEl); try{const res=await fetch(GOOGLE_SCRIPT_URL,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'text/plain;charset=utf-8'}}); const data=await res.json(); if(data.success){showToast('ההזמנה נשלחה בהצלחה! מספר הזמנה: '+data.orderNumber); cart={};renderCart();formEl.reset();closeModalById('consentModal');}else throw new Error(data.error||'שגיאה')}catch(err){showToast('שגיאה בשליחת ההזמנה: '+err.message)}}
+const orderFormEl=document.getElementById('orderForm');
+orderFormEl.addEventListener('submit',e=>{e.preventDefault(); const items=Object.values(cart); if(!items.length){showToast('צריך לבחור לפחות מוצר אחד');return} if(!GOOGLE_SCRIPT_URL.includes('script.google.com')){showToast('צריך להכניס קודם את קישור Apps Script בקובץ');return} openModalById('consentModal');});
+document.getElementById('confirmOrderBtn').addEventListener('click',()=>{const requiredConsent=document.getElementById('requiredOrderConsent'); if(!requiredConsent.checked){showToast('יש לאשר שמירת פרטים לצורך טיפול בהזמנה'); requiredConsent.focus(); return;} submitOrder(orderFormEl);});
 loadProducts();
 </script>
 </body>
