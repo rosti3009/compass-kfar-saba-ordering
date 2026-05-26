@@ -151,6 +151,16 @@
       object-fit: cover;
     }
 
+    .no-img {
+      display: grid;
+      place-items: center;
+      color: #777;
+      font-size: .82rem;
+      border-bottom: 1px solid #1b1b1b;
+    }
+
+    .no-img::before { content: "אין תמונה"; }
+
     .product-body { padding: 8px; }
     .product-body h3 { margin: 0 0 4px; font-size: .95rem; min-height: 2.2em; }
     .meta { color: var(--muted); font-size: .82rem; min-height: 2.2em; }
@@ -310,24 +320,30 @@
 
 <script>
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwuHIwl8KeVK5iwNiSu6PtzW_pvmO1K5gnd6pc3fRqzzznhS5Tg5cZaLcmpKwhwMovc/exec';
-let products = []; let cart = {};
+let products = []; let cart = {}; let categoryOrder = [];
 const fallbackProducts = [
- {id:'entrecote',name:'אנטריקוט פרימיום',category:'נתחי בקר',unit:'ק״ג',price:199.9,description:'נתח פרימיום לצלייה',active:true},
- {id:'picanha',name:'פיקניה',category:'נתחי בקר',unit:'ק״ג',price:171.5,description:'פיקניה איכותית לצלייה',active:true},
- {id:'denver',name:'דנוור סטייק',category:'סטייקים',unit:'ק״ג',price:139.9,description:'סטייק דנוור עסיסי',active:true},
- {id:'flatiron',name:'פלאט איירון',category:'סטייקים',unit:'ק״ג',price:199.9,description:'נתח רך ומיוחד',active:true},
- {id:'asado',name:'אסאדו',category:'נתחי בקר',unit:'ק״ג',price:100.3,description:'לבישול ארוך/גריל',active:true},
- {id:'kebab',name:'קבב עגל טלה',category:'קצבייה',unit:'מארז',price:65,description:'מארז קבב איכותי',active:true}
+ {id:'entrecote',name:'אנטריקוט פרימיום',category:'נתחי בקר',unit:'ק״ג',price:199.9,description:'נתח פרימיום לצלייה',image:'',active:true},
+ {id:'picanha',name:'פיקניה',category:'נתחי בקר',unit:'ק״ג',price:171.5,description:'פיקניה איכותית לצלייה',image:'',active:true},
+ {id:'denver',name:'דנוור סטייק',category:'סטייקים',unit:'ק״ג',price:139.9,description:'סטייק דנוור עסיסי',image:'',active:true},
+ {id:'flatiron',name:'פלאט איירון',category:'סטייקים',unit:'ק״ג',price:199.9,description:'נתח רך ומיוחד',image:'',active:true},
+ {id:'asado',name:'אסאדו',category:'נתחי בקר',unit:'ק״ג',price:100.3,description:'לבישול ארוך/גריל',image:'',active:true},
+ {id:'kebab',name:'קבב עגל טלה',category:'קצבייה',unit:'מארז',price:65,description:'מארז קבב איכותי',image:'',active:true}
 ];
+// Required product columns from Google Sheets: id, category, name, price, unit, description, image, active
+const REQUIRED_PRODUCT_COLUMNS = ['id','category','name','price','unit','description','image','active'];
 function money(n){return '₪'+(Number(n)||0).toLocaleString('he-IL',{maximumFractionDigits:1})}
 function showToast(t){const el=document.getElementById('toast');el.textContent=t;el.style.display='block';setTimeout(()=>el.style.display='none',3500)}
 function scrollToCart(){document.getElementById('cartSection').scrollIntoView({behavior:'smooth',block:'start'})}
-async function loadProducts(){try{ if(!GOOGLE_SCRIPT_URL.includes('script.google.com')) throw new Error('no url'); const res=await fetch(GOOGLE_SCRIPT_URL); const data=await res.json(); products=(data.products&&data.products.length)?data.products:fallbackProducts;}catch(e){products=fallbackProducts;} renderFilters(); renderProducts(products);}
-function renderFilters(){const cats=['הכל',...new Set(products.map(p=>p.category||'כללי'))]; document.getElementById('filters').innerHTML=cats.map((c,i)=>`<button class="chip ${i===0?'active':''}" onclick="filterCat('${c}',this)">${c}</button>`).join('')}
-function filterCat(cat,btn){document.querySelectorAll('.chip').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderProducts(cat==='הכל'?products:products.filter(p=>(p.category||'כללי')===cat));}
-function cleanDesc(d){d=String(d||'').trim(); return (d==='16'||d==='0') ? '' : d}
-function imgHtml(p){const url=String(p.image||'').trim(); return url ? `<img class="product-img" src="${url}" alt="${p.name||''}" loading="lazy" onerror="this.style.display='none'">` : '<div class="no-img"></div>'}
-function renderProducts(list){document.getElementById('products').innerHTML=list.map(p=>`<div class="card">${imgHtml(p)}<div class="product-body"><h3>${p.name||''}</h3><div class="meta">${cleanDesc(p.description)}</div><div class="price">${money(p.price)}</div><div class="qty-row"><div class="stepper"><button onclick="changeQty('${p.id}',-1)" type="button">-</button><input id="q_${p.id}" type="number" min="1" step="1" value="1"><button onclick="changeQty('${p.id}',1)" type="button">+</button></div><button class="btn-add" onclick="addToCart('${p.id}')" type="button">+ הוסף</button></div></div></div>`).join('')}
+function isEmptyProductRow(p){return REQUIRED_PRODUCT_COLUMNS.every(key=>String(p?.[key] ?? '').trim()==='');}
+function isActiveProduct(value){const v=String(value ?? '').trim().toLowerCase(); return v==='' || v==='true';}
+function normalizeProductRow(row){const normalized = {}; REQUIRED_PRODUCT_COLUMNS.forEach(key=>normalized[key]=row?.[key] ?? ''); normalized.price = Number(normalized.price) || 0; return normalized;}
+function normalizeProducts(rows){const seenCategories = new Set(); categoryOrder = []; return rows.map(normalizeProductRow).filter(row=>!isEmptyProductRow(row)).filter(row=>isActiveProduct(row.active)).map(row=>{const category=String(row.category||'כללי').trim() || 'כללי'; if(!seenCategories.has(category)){seenCategories.add(category); categoryOrder.push(category);} return {...row,category};});}
+async function loadProducts(){try{ if(!GOOGLE_SCRIPT_URL.includes('script.google.com')) throw new Error('no url'); const res=await fetch(GOOGLE_SCRIPT_URL); const data=await res.json(); const fromSheet = Array.isArray(data?.products) ? data.products : []; products = fromSheet.length ? normalizeProducts(fromSheet) : normalizeProducts(fallbackProducts);}catch(e){products=normalizeProducts(fallbackProducts);} renderFilters(); renderProducts(products);}
+function renderFilters(){const cats=['הכל',...categoryOrder]; document.getElementById('filters').innerHTML=cats.map((c,i)=>`<button class="chip ${i===0?'active':''}" onclick="filterCat('${c.replace(/'/g, "&#39;")}',this)">${c}</button>`).join('')}
+function filterCat(cat,btn){document.querySelectorAll('.chip').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderProducts(cat==='הכל'?products:products.filter(p=>p.category===cat));}
+function cleanDesc(d){return String(d||'').trim();}
+function imgHtml(p){const url=String(p.image||'').trim(); return url ? `<img class="product-img" src="${url}" alt="${p.name||''}" loading="lazy" onerror="this.outerHTML='<div class=\"no-img\" aria-label=\"אין תמונה\"></div>'">` : '<div class="no-img" aria-label="אין תמונה"></div>'}
+function renderProducts(list){document.getElementById('products').innerHTML=list.map(p=>{const desc=cleanDesc(p.description);return `<div class="card">${imgHtml(p)}<div class="product-body"><h3>${p.name||''}</h3>${desc?`<div class="meta">${desc}</div>`:''}<div class="price">${money(p.price)} / ${p.unit||''}</div><div class="qty-row"><div class="stepper"><button onclick="changeQty('${p.id}',-1)" type="button">-</button><input id="q_${p.id}" type="number" min="1" step="1" value="1"><button onclick="changeQty('${p.id}',1)" type="button">+</button></div><button class="btn-add" onclick="addToCart('${p.id}')" type="button">+ הוסף</button></div></div></div>`}).join('')}
 function changeQty(id,delta){const el=document.getElementById('q_'+id); if(!el) return; el.value=Math.max(1,(Number(el.value)||1)+delta);}
 function addToCart(id){const p=products.find(x=>String(x.id)===String(id)); if(!p)return; const qty=Math.max(1,Number(document.getElementById('q_'+id).value)||1); if(!cart[id])cart[id]={...p,qty:0}; cart[id].qty+=qty; renderCart(); showToast('נוסף לסל: '+p.name)}
 function removeItem(id){delete cart[id];renderCart()}
