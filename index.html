@@ -222,6 +222,14 @@
       background: transparent;
       color: #fff;
       font-weight: 700;
+      appearance: textfield;
+      -moz-appearance: textfield;
+      padding: 0;
+    }
+    .stepper input::-webkit-outer-spin-button,
+    .stepper input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
     }
 
     .btn-add {
@@ -566,9 +574,11 @@ function applyFilters(){
 function cleanDesc(d){return String(d||'').trim();}
 function imgHtml(p){const url=String(p.image||'').trim(); return url ? `<img class="product-img" src="${url}" alt="${p.name||''}" loading="lazy" decoding="async" onerror="this.outerHTML='<div class=\"no-img\" aria-label=\"אין תמונה\"></div>'">` : '<div class="no-img" aria-label="אין תמונה"></div>'}
 function isSoldout(p){return p.status==='SOLDOUT';}
-function renderProducts(list){if(!list.length){document.getElementById('products').innerHTML='<p>לא נמצאו מוצרים לתוצאה המבוקשת.</p>'; return;} document.getElementById('products').innerHTML=list.map(p=>{const desc=cleanDesc(p.description); const sold=isSoldout(p); return `<article class="card ${sold?'soldout':''}" tabindex="0"><button class="product-click" type="button" onclick="openProductModal('${p.id}')" aria-label="פתח פרטי מוצר ${p.name||''}">${imgHtml(p)}</button><div class="product-body"><h3>${p.name||''}</h3>${desc?`<div class="meta">${desc}</div>`:''}<div class="price">${money(p.price)} / ${p.unit||''}</div>${sold?'<span class="soldout-label">אזל מהמלאי</span>':`<div class="qty-row"><div class="stepper"><button onclick="changeQty('${p.id}',-1)" type="button" aria-label="הפחת כמות">-</button><input id="q_${p.id}" type="number" min="1" step="1" value="1" aria-label="כמות ${p.name||''}"><button onclick="changeQty('${p.id}',1)" type="button" aria-label="הגדל כמות">+</button></div><button class="btn-add" onclick="addToCart('${p.id}')" type="button">+ הוסף</button></div>`}</div></article>`}).join('')}
-function changeQty(id,delta){const el=document.getElementById('q_'+id); if(!el) return; el.value=Math.max(1,(Number(el.value)||1)+delta);}
-function addToCart(id){const p=products.find(x=>String(x.id)===String(id)); if(!p || isSoldout(p))return; const qty=Math.max(1,Number(document.getElementById('q_'+id).value)||1); if(!cart[id])cart[id]={...p,qty:0}; cart[id].qty+=qty; renderCart(); showToast('נוסף לסל: '+p.name)}
+function renderProducts(list){if(!list.length){document.getElementById('products').innerHTML='<p>לא נמצאו מוצרים לתוצאה המבוקשת.</p>'; return;} document.getElementById('products').innerHTML=list.map(p=>{const desc=cleanDesc(p.description); const sold=isSoldout(p); return `<article class="card ${sold?'soldout':''}" tabindex="0"><button class="product-click" type="button" onclick="openProductModal('${p.id}')" aria-label="פתח פרטי מוצר ${p.name||''}">${imgHtml(p)}</button><div class="product-body"><h3>${p.name||''}</h3>${desc?`<div class="meta">${desc}</div>`:''}<div class="price">${money(p.price)} / ${p.unit||''}</div>${sold?'<span class="soldout-label">אזל מהמלאי</span>':`<div class="qty-row"><div class="stepper"><button onclick="changeQty('${p.id}',-1)" type="button" aria-label="הפחת כמות">-</button><input id="q_${p.id}" type="number" min="1" step="1" value="1" inputmode="numeric" aria-label="כמות ${p.name||''}" oninput="sanitizeQtyInput('${p.id}')" onblur="normalizeQtyInput('${p.id}')"><button onclick="changeQty('${p.id}',1)" type="button" aria-label="הגדל כמות">+</button></div><button class="btn-add" onclick="addToCart('${p.id}')" type="button">+ הוסף</button></div>`}</div></article>`}).join('')}
+function sanitizeQtyInput(id){const el=document.getElementById('q_'+id); if(!el) return; el.value=String(el.value||'').replace(/[^\d]/g,'');}
+function normalizeQtyInput(id){const el=document.getElementById('q_'+id); if(!el) return 1; const qty=Math.max(1,Math.floor(Number(el.value)||1)); el.value=qty; return qty;}
+function changeQty(id,delta){const el=document.getElementById('q_'+id); if(!el) return; normalizeQtyInput(id); el.value=Math.max(1,Number(el.value)+delta);}
+function addToCart(id){const p=products.find(x=>String(x.id)===String(id)); if(!p || isSoldout(p))return; const qty=normalizeQtyInput(id); if(!cart[id])cart[id]={...p,qty:0}; cart[id].qty+=qty; renderCart(); showToast('נוסף לסל: '+p.name)}
 function removeItem(id){delete cart[id];renderCart()}
 function openWhatsApp(){window.open('https://wa.me/972000000000?text='+encodeURIComponent('שלום קומפס, אשמח לעזרה עם הזמנה'),'_blank')}
 function openProductModal(id){const p=products.find(x=>String(x.id)===String(id)); if(!p) return; document.getElementById('modalMedia').innerHTML = imgHtml(p); document.getElementById('modalBody').innerHTML = `<h3>${p.name}</h3><p class="meta">${cleanDesc(p.description)||''}</p><div class="price">${money(p.price)} / ${p.unit||''}</div>${isSoldout(p)?'<div class="soldout-label">אזל מהמלאי</div>':''}`; document.getElementById('productModal').setAttribute('aria-hidden','false');}
