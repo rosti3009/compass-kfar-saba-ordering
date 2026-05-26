@@ -5,56 +5,193 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>קומפס מעדני בשר - הזמנות אונליין כפר סבא</title>
   <style>
-    :root{
-  --red:#b71c1c;
-  --dark:#0d0d0d;
-  --black:#000;
-  --gold:#d4a54c;
-  --text:#f5f5f5;
-  --card:#161616;
-  --line:#2a2a2a;
-}
+    :root {
+      --bg: #080808;
+      --surface: #121212;
+      --surface-2: #171717;
+      --line: #2c2c2c;
+      --line-soft: #3a3a3a;
+      --text: #f5f0e8;
+      --muted: #bfb5a5;
+      --gold: #d6a453;
+      --gold-soft: #f0ca88;
+      --red: #9f2323;
+      --red-soft: #c43939;
+      --shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+    }
 
-body{
-  margin:0;
-  font-family:Arial,'Noto Sans Hebrew',sans-serif;
-  background:#000;
-  color:var(--text);
-}
+    * { box-sizing: border-box; }
 
-header{
-  background:#111;
-  border-bottom:1px solid #222;
-}
+    body {
+      margin: 0;
+      font-family: "Assistant", "Heebo", Arial, "Noto Sans Hebrew", sans-serif;
+      background: radial-gradient(circle at top, #171717 0%, var(--bg) 45%);
+      color: var(--text);
+      line-height: 1.55;
+    }
 
-.card{
-  background:#161616;
-  border:1px solid #2a2a2a;
-  color:#fff;
-}
+    .wrap { width: min(1140px, 94vw); margin-inline: auto; }
 
-.hero-card{
-  background:linear-gradient(180deg,#111,#1a1a1a);
-  border:1px solid #2a2a2a;
-}
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(8, 8, 8, 0.92);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(10px);
+    }
 
-.price{
-  color:#d4a54c;
-}
+    .top {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 1rem; padding: .8rem 0;
+    }
 
-.btn-red{
-  background:#b71c1c;
-}
+    .brand { display: flex; align-items: center; gap: .85rem; }
+    .brand img {
+      width: 62px; height: 62px; border-radius: 50%; object-fit: cover;
+      border: 2px solid var(--gold);
+      box-shadow: 0 0 0 5px rgba(214, 164, 83, .12);
+    }
+    .brand h1 { margin: 0; font-size: 1.2rem; }
+    .brand p { margin: .25rem 0 0; color: var(--muted); font-size: .9rem; }
 
-.btn-dark{
-  background:#222;
-}
+    .cta { display: flex; gap: .6rem; }
+
+    .btn {
+      border: 1px solid transparent;
+      border-radius: 999px;
+      font-size: .95rem;
+      font-weight: 700;
+      color: #fff;
+      padding: .7rem 1.15rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: .2s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-red { background: linear-gradient(130deg, var(--red), var(--red-soft)); }
+    .btn-dark { background: #202020; border-color: #333; }
+
+    .hero { padding: 1.6rem 0 1.2rem; }
+    .hero-card {
+      border: 1px solid var(--line-soft);
+      background: linear-gradient(135deg, #111 0%, #1a1a1a 58%, #131313 100%);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      padding: 1.7rem;
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      gap: 1.2rem;
+      align-items: stretch;
+      overflow: hidden;
+      position: relative;
+    }
+    .hero-card::before {
+      content: "";
+      position: absolute;
+      inset: auto -40px -90px auto;
+      width: 230px; height: 230px;
+      background: radial-gradient(circle, rgba(214,164,83,.24), transparent 70%);
+      pointer-events: none;
+    }
+    .hero h2 { margin: 0 0 .7rem; font-size: clamp(1.35rem, 2.8vw, 2rem); }
+    .hero p { margin: 0; color: var(--muted); max-width: 62ch; }
+    .notice {
+      align-self: center;
+      border: 1px dashed rgba(214, 164, 83, .55);
+      background: rgba(214, 164, 83, .08);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      font-weight: 600;
+    }
+
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 1rem; padding-bottom: 1.3rem; }
+
+    .filters { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .9rem; }
+    .chip {
+      border: 1px solid var(--line-soft);
+      background: #1a1a1a;
+      color: var(--text);
+      border-radius: 999px;
+      padding: .42rem .9rem;
+      cursor: pointer;
+      transition: .2s;
+    }
+    .chip.active, .chip:hover { background: rgba(214,164,83,.2); border-color: var(--gold); }
+
+    .products { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .8rem; }
+    .card {
+      border: 1px solid var(--line);
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow);
+    }
+
+    .product-card { overflow: hidden; padding: .8rem; display: grid; gap: .55rem; }
+    .product-img, .no-img {
+      width: 100%; aspect-ratio: 16/11; border-radius: var(--radius-sm);
+      border: 1px solid #292929; background: #0f0f0f;
+    }
+    .product-img { object-fit: cover; }
+    .no-img { background: linear-gradient(140deg,#151515,#0d0d0d); }
+    .product-card h3 { margin: .2rem 0 0; font-size: 1.06rem; }
+    .meta { color: var(--muted); min-height: 2.2em; font-size: .92rem; }
+    .price { color: var(--gold-soft); font-size: 1.04rem; font-weight: 700; }
+    .small { color: #c7bfb2; font-size: .83rem; }
+    .qty { display: grid; grid-template-columns: 1fr auto; gap: .45rem; align-items: center; }
+    input, select, textarea {
+      width: 100%; border: 1px solid #333; background: var(--surface-2); color: var(--text);
+      border-radius: 10px; padding: .65rem .7rem; font: inherit;
+    }
+
+    .cart { padding: 1rem; position: sticky; top: 88px; height: fit-content; }
+    .cart h2 { margin-top: 0; margin-bottom: .8rem; }
+    .cart-item { border-bottom: 1px solid #2b2b2b; padding-bottom: .6rem; margin-bottom: .6rem; }
+    .empty { color: var(--muted); }
+    .cart-total { font-size: 1.3rem; font-weight: 800; color: var(--gold); margin: .7rem 0 1rem; }
+    #orderForm { display: grid; gap: .45rem; }
+    #orderForm label { color: var(--muted); font-size: .9rem; }
+
+    .loading { text-align: center; padding: 2rem; color: var(--muted); }
+    .footer { border-top: 1px solid var(--line); color: #958673; padding: 1rem 0 2rem; text-align: center; }
+
+    .toast {
+      position: fixed; inset: auto 50% 18px auto; transform: translateX(50%);
+      background: #171717; border: 1px solid var(--gold); color: #fff;
+      padding: .68rem .95rem; border-radius: 11px; box-shadow: var(--shadow); display: none;
+    }
+
+    @media (max-width: 1020px) {
+      .grid { grid-template-columns: 1fr; }
+      .cart { position: static; }
+    }
+    @media (max-width: 760px) {
+      .top { flex-wrap: wrap; }
+      .cta { width: 100%; }
+      .cta .btn { flex: 1; text-align: center; }
+      .hero-card { grid-template-columns: 1fr; padding: 1.1rem; }
+      .products { grid-template-columns: repeat(auto-fill, minmax(172px, 1fr)); }
+    }
   </style>
 </head>
 <body>
-<header><div class="wrap top"><div class="brand"><img src="assets/compass-logo.jpeg" alt="קומפס מעדני בשר"><div><h1>קומפס מעדני בשר</h1><p>רח׳ סוקולוב 3, כפר סבא | להזמנות: 050-4340274</p></div></div><div class="cta"><a class="btn btn-dark" href="tel:0504340274">התקשרו</a><a class="btn btn-red" href="https://wa.me/972504340274" target="_blank">וואטסאפ</a></div></div></header>
+<header>
+  <div class="wrap top">
+    <div class="brand">
+      <img src="compass-logo.jpeg" alt="קומפס מעדני בשר">
+      <div>
+        <h1>קומפס מעדני בשר</h1>
+        <p>רח׳ סוקולוב 3, כפר סבא | להזמנות: 050-4340274</p>
+      </div>
+    </div>
+    <div class="cta"><a class="btn btn-dark" href="tel:0504340274">התקשרו</a><a class="btn btn-red" href="https://wa.me/972504340274" target="_blank">וואטסאפ</a></div>
+  </div>
+</header>
 <main class="wrap">
-<section class="hero"><div class="hero-card"><div><h2>הזמנות בשר פרימיום אונליין</h2><p>בחרו מוצרים, מלאו פרטים, ושלחו הזמנה לקומפס מעדני בשר כפר סבא. המחיר הסופי נקבע לפי שקילה בפועל וזמינות מלאי.</p></div><div class="notice">📍 איסוף/משלוח מכפר סבא<br>🥩 בשרים, סטייקים, קבבים ומוצרי קצבייה<br>📞 050-4340274</div></div></section>
+<section class="hero"><div class="hero-card"><div><h2>קצביית פרימיום להזמנת בשר טרי אונליין</h2><p>בחרו נתחים איכותיים, הגדירו כמויות, והעבירו הזמנה בקלות. המחיר הסופי מתעדכן לפי שקילה בפועל וזמינות מלאי בסניף כפר סבא.</p></div><div class="notice">📍 איסוף עצמי ומשלוחים מקומיים<br>🥩 נתחי בקר מובחרים, סטייקים וקצבייה טרייה<br>📞 שירות הזמנות אישי ומהיר</div></div></section>
 <div class="grid"><section><div class="filters" id="filters"></div><div id="products" class="products"><div class="loading">טוען מוצרים...</div></div></section><aside class="cart card"><h2>הסל שלי</h2><div id="cartItems" class="empty">עדיין לא נבחרו מוצרים</div><div class="cart-total" id="cartTotal">₪0</div><form id="orderForm"><label>שם מלא *</label><input name="name" required><label>טלפון *</label><input name="phone" required><label>אימייל</label><input name="email" type="email"><label>יישוב</label><input name="city" value="כפר סבא"><label>כתובת</label><input name="address"><label>סוג הזמנה</label><select name="orderType"><option>איסוף עצמי</option><option>משלוח</option></select><label>הערות</label><textarea name="notes" rows="3"></textarea><button class="btn btn-red" style="width:100%;font-size:18px" type="submit">שליחת הזמנה</button><p class="small">* ההזמנה אינה חיוב סופי. נציג יחזור לאישור.</p></form></aside></div>
 <div class="footer">© קומפס מעדני בשר - כפר סבא</div>
 </main><div class="toast" id="toast"></div>
@@ -76,7 +213,7 @@ function renderFilters(){const cats=['הכל',...new Set(products.map(p=>p.categ
 function filterCat(cat,btn){document.querySelectorAll('.chip').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderProducts(cat==='הכל'?products:products.filter(p=>(p.category||'כללי')===cat));}
 function cleanDesc(d){d=String(d||'').trim(); return (d==='16'||d==='0') ? '' : d}
 function imgHtml(p){const url=String(p.image||'').trim(); return url ? `<img class="product-img" src="${url}" alt="${p.name||''}" loading="lazy" onerror="this.style.display='none'">` : '<div class="no-img"></div>'}
-function renderProducts(list){document.getElementById('products').innerHTML=list.map(p=>`<div class="card">${imgHtml(p)}<h3>${p.name||''}</h3><div class="meta">${cleanDesc(p.description)}</div><div class="price">${money(p.price)} <span class="small">/ ${p.unit||'יח׳'}</span></div><div class="qty"><input id="q_${p.id}" type="number" min="0.1" step="0.1" value="1"><button class="btn btn-red" onclick="addToCart('${p.id}')">הוספה</button></div></div>`).join('')}
+function renderProducts(list){document.getElementById('products').innerHTML=list.map(p=>`<div class="card product-card">${imgHtml(p)}<h3>${p.name||''}</h3><div class="meta">${cleanDesc(p.description)}</div><div class="price">${money(p.price)} <span class="small">/ ${p.unit||'יח׳'}</span></div><div class="qty"><input id="q_${p.id}" type="number" min="0.1" step="0.1" value="1"><button class="btn btn-red" onclick="addToCart('${p.id}')">הוספה</button></div></div>`).join('')}
 function addToCart(id){const p=products.find(x=>String(x.id)===String(id)); if(!p)return; const qty=Number(document.getElementById('q_'+id).value)||1; if(!cart[id])cart[id]={...p,qty:0}; cart[id].qty+=qty; renderCart(); showToast('נוסף לסל: '+p.name)}
 function removeItem(id){delete cart[id];renderCart()}
 function renderCart(){const items=Object.values(cart); const box=document.getElementById('cartItems'); if(!items.length){box.className='empty';box.innerHTML='עדיין לא נבחרו מוצרים'}else{box.className='';box.innerHTML=items.map(i=>`<div class="cart-item"><b>${i.name}</b>${i.qty} ${i.unit||''} × ${money(i.price)} = ${money(i.qty*i.price)}<br><button class="chip" onclick="removeItem('${i.id}')">הסר</button></div>`).join('')} document.getElementById('cartTotal').textContent=money(items.reduce((s,i)=>s+i.qty*i.price,0));}
