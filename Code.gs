@@ -73,16 +73,30 @@ function getProductsFromSheet_() {
   if (!sheet) throw new Error('לא נמצא גיליון בשם ' + PRODUCTS_SHEET_NAME);
   const data = sheet.getDataRange().getValues();
   if (data.length < 2) return [];
-  const headers = data[0].map(h => String(h).trim());
+  const headers = data[0].map(h => String(h == null ? '' : h).trim());
+  const keyMap = {
+    id: headers.indexOf('id'),
+    name: headers.indexOf('name'),
+    active: headers.indexOf('active')
+  };
 
   return data.slice(1).filter(row => {
-    const activeIndex = headers.indexOf('active');
-    if (activeIndex === -1) return true;
-    const value = row[activeIndex];
-    return value === true || String(value).toUpperCase() === 'TRUE';
+    const values = row.map(v => String(v == null ? '' : v).trim());
+    const hasAnyValue = values.some(v => v !== '');
+    if (!hasAnyValue) return false; // ignore only completely empty rows
+
+    const idValue = keyMap.id > -1 ? values[keyMap.id] : '';
+    const nameValue = keyMap.name > -1 ? values[keyMap.name] : '';
+    if (idValue === '' && nameValue === '') return false; // not a valid product row
+
+    if (keyMap.active === -1) return true;
+    const activeValue = String(values[keyMap.active] || '').toUpperCase();
+    return activeValue === '' || activeValue === 'TRUE' || activeValue === 'SOLDOUT';
   }).map(row => {
     const product = {};
-    headers.forEach((header, i) => product[header] = row[i]);
+    headers.forEach((header, i) => {
+      product[header] = String(row[i] == null ? '' : row[i]).trim();
+    });
     return product;
   });
 }
