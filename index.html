@@ -284,6 +284,27 @@
       background: linear-gradient(160deg, var(--red), var(--red-deep));
       cursor: pointer;
     }
+    .order-success {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #355a35;
+      background: #102310;
+      display: none;
+    }
+    .order-success h3 { margin: 0 0 8px; color: #95e395; font-size: 1rem; }
+    .order-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .order-actions a, .order-actions button {
+      border: 1px solid #3b3b3b;
+      border-radius: 8px;
+      background: #1b1b1b;
+      color: #fff;
+      padding: 8px 12px;
+      text-decoration: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: .94rem;
+    }
 
     .footer { margin-top: 24px; border-top: 1px solid #1a1a1a; padding: 16px 10px 24px; text-align: center; color: #d3bc93; font-size: .88rem; }
     .footer-links { margin-top: 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
@@ -434,6 +455,7 @@
         <label>הערות</label><textarea name="notes" rows="3" aria-label="הערות"></textarea>
         <button class="submit" type="submit">שליחת הזמנה</button>
       </form>
+      <div id="orderSuccess" class="order-success" aria-live="polite"></div>
     </section>
 
     <div class="footer">
@@ -690,7 +712,11 @@ document.querySelectorAll('[data-a11y-action]').forEach(btn=>{
 });
 
 function renderCart(){const items=Object.values(cart); const box=document.getElementById('cartItems'); if(!items.length){box.className='meta';box.innerHTML='עדיין לא נבחרו מוצרים'}else{box.className='';box.innerHTML=items.map(i=>`<div style="border-bottom:1px solid #2a2a2a;padding:6px 0"><b>${i.name}</b><br>${i.qty} ${i.unit||''} × ${money(i.price)} = ${money(i.qty*i.price)}<br><button class="chip" onclick="removeItem('${i.id}')">הסר</button></div>`).join('')} const total=items.reduce((s,i)=>s+i.qty*i.price,0); document.getElementById('cartTotal').textContent=money(total); document.getElementById('cartTotalMini').textContent=money(total); document.getElementById('cartCount').textContent=items.length;}
-document.getElementById('orderForm').addEventListener('submit',async e=>{e.preventDefault(); const items=Object.values(cart); if(!items.length){showToast('צריך לבחור לפחות מוצר אחד');return} if(!GOOGLE_SCRIPT_URL.includes('script.google.com')){showToast('צריך להכניס קודם את קישור Apps Script בקובץ');return} const fd=new FormData(e.target); const payload={customer:{name:fd.get('name'),phone:fd.get('phone'),email:fd.get('email'),city:fd.get('city'),address:fd.get('address'),orderType:fd.get('orderType'),notes:fd.get('notes')},items:items.map(i=>({id:i.id,name:i.name,quantity:i.qty,unit:i.unit,price:Number(i.price),lineTotal:Number(i.qty*i.price)})),total:items.reduce((s,i)=>s+i.qty*i.price,0)}; try{const res=await fetch(GOOGLE_SCRIPT_URL,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'text/plain;charset=utf-8'}}); const data=await res.json(); if(data.success){showToast('ההזמנה נשלחה בהצלחה! מספר הזמנה: '+data.orderNumber); cart={};renderCart();e.target.reset();}else throw new Error(data.error||'שגיאה')}catch(err){showToast('שגיאה בשליחת ההזמנה: '+err.message)}});
+function buildOrderSummaryHtml(orderData){const rows=orderData.items.map(item=>`<tr><td>${escapeHtml(item.name)}</td><td>${item.quantity}</td><td>${escapeHtml(item.unit||'יחידה')}</td><td>${money(item.price)}</td><td>${money(item.lineTotal)}</td></tr>`).join(''); return `<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>סיכום הזמנה ${escapeHtml(orderData.orderNumber)}</title><style>body{font-family:Arial,sans-serif;line-height:1.5;padding:18px;color:#111}h1,h2{margin:0 0 8px}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #bbb;padding:8px;text-align:right}th{background:#f4f4f4}.muted{color:#444;font-size:14px;margin-top:14px}</style></head><body><h1>קומפס מעדני בשר</h1><h2>סניף: כפר סבא</h2><p><b>מספר הזמנה:</b> ${escapeHtml(orderData.orderNumber)}<br><b>תאריך ושעה:</b> ${escapeHtml(orderData.dateTime)}</p><p><b>פרטי לקוח:</b><br>שם: ${escapeHtml(orderData.customer.name||'')}<br>טלפון: ${escapeHtml(orderData.customer.phone||'')}<br>אימייל: ${escapeHtml(orderData.customer.email||'')}<br>יישוב: ${escapeHtml(orderData.customer.city||'')}<br>כתובת: ${escapeHtml(orderData.customer.address||'')}</p><p><b>סוג הזמנה:</b> ${escapeHtml(orderData.customer.orderType||'')}<br><b>הערות:</b> ${escapeHtml(orderData.customer.notes||'ללא')}</p><table><thead><tr><th>רשימת מוצרים</th><th>כמות</th><th>יחידה</th><th>מחיר</th><th>סה״כ</th></tr></thead><tbody>${rows}</tbody></table><p><b>סה״כ משוער:</b> ${money(orderData.total)}</p><p class="muted">הערה: המחיר הסופי ייקבע לפי שקילה בפועל, זמינות מלאי ואישור נציג החנות.</p></body></html>`}
+function downloadOrderSummary(orderData){const html=buildOrderSummaryHtml(orderData); const blob=new Blob([html],{type:'text/html;charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`order-${orderData.orderNumber}.html`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);}
+function renderOrderSuccess(orderData,pdfUrl){const box=document.getElementById('orderSuccess'); const pdfLink=pdfUrl?`<a href="${encodeURI(pdfUrl)}" target="_blank" rel="noopener noreferrer">צפייה בקובץ ההזמנה</a>`:''; box.innerHTML=`<h3>ההזמנה נשלחה בהצלחה!</h3><div>מספר הזמנה: <b>${escapeHtml(orderData.orderNumber)}</b></div><div class="order-actions"><button type="button" onclick="downloadOrderSummary(window.__lastOrderData)">הורדת ההזמנה</button>${pdfLink}</div>`; box.style.display='block';}
+function escapeHtml(value){return String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;");}
+document.getElementById('orderForm').addEventListener('submit',async e=>{e.preventDefault(); const items=Object.values(cart); if(!items.length){showToast('צריך לבחור לפחות מוצר אחד');return} if(!GOOGLE_SCRIPT_URL.includes('script.google.com')){showToast('צריך להכניס קודם את קישור Apps Script בקובץ');return} const fd=new FormData(e.target); const payload={customer:{name:fd.get('name'),phone:fd.get('phone'),email:fd.get('email'),city:fd.get('city'),address:fd.get('address'),orderType:fd.get('orderType'),notes:fd.get('notes')},items:items.map(i=>({id:i.id,name:i.name,quantity:i.qty,unit:i.unit,price:Number(i.price),lineTotal:Number(i.qty*i.price)})),total:items.reduce((s,i)=>s+i.qty*i.price,0)}; try{const res=await fetch(GOOGLE_SCRIPT_URL,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'text/plain;charset=utf-8'}}); const data=await res.json(); if(data.success){const orderData={orderNumber:data.orderNumber||`WEB-${Date.now()}`,dateTime:new Date().toLocaleString('he-IL'),customer:payload.customer,items:payload.items,total:payload.total}; window.__lastOrderData=orderData; renderOrderSuccess(orderData,data.pdfUrl); showToast('ההזמנה נשלחה בהצלחה! מספר הזמנה: '+orderData.orderNumber); cart={};renderCart();e.target.reset();}else throw new Error(data.error||'שגיאה')}catch(err){showToast('שגיאה בשליחת ההזמנה: '+err.message)}});
 loadProducts();
 </script>
 </body>
