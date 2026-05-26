@@ -343,6 +343,43 @@
       .cart-float { left: max(10px, calc((100vw - min(980px, 98vw)) / 2 + 10px)); }
       .wa-float { right: max(12px, calc((100vw - min(980px, 98vw)) / 2 + 12px)); }
     }
+
+
+    .accessibility-toggle {
+      position: fixed;
+      right: max(12px, calc((100vw - min(980px, 98vw)) / 2 + 12px));
+      bottom: 136px;
+      z-index: 125;
+      border: 1px solid #3b3b3b;
+      background: #111;
+      color: #fff;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .accessibility-panel {
+      position: fixed;
+      right: max(12px, calc((100vw - min(980px, 98vw)) / 2 + 12px));
+      bottom: 190px;
+      width: min(260px, 88vw);
+      z-index: 126;
+      background: #0f0f0f;
+      border: 1px solid #303030;
+      border-radius: 12px;
+      padding: 10px;
+      display: none;
+    }
+    .accessibility-panel[aria-hidden="false"] { display: block; }
+    .accessibility-panel h3 { margin: 0 0 8px; color: var(--gold); font-size: 1rem; }
+    .accessibility-actions { display: grid; gap: 6px; }
+    .accessibility-actions button { width: 100%; text-align: right; border-radius: 8px; border: 1px solid #363636; background: #1b1b1b; color: #f2efe9; padding: 8px; cursor: pointer; }
+
+    body.a11y-high-contrast { filter: contrast(1.2) saturate(0.9); }
+    body.a11y-highlight-links a, body.a11y-highlight-links .footer-link-btn { text-decoration: underline !important; text-underline-offset: 3px; }
+    body.a11y-text-spacing, body.a11y-text-spacing * { letter-spacing: .04em; line-height: 1.55; word-spacing: .08em; }
+    body.a11y-stop-animations *, body.a11y-stop-animations *::before, body.a11y-stop-animations *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+
   </style>
 </head>
 <body>
@@ -358,8 +395,7 @@
   <section class="hero" aria-label="באנר ראשי">
     <img src="https://images.unsplash.com/photo-1603048297172-c92544798d5a?auto=format&fit=crop&w=1200&q=80" alt="בשר איכותי" loading="lazy" decoding="async">
     <div class="hero-copy">
-      <h2>בשר איכותי.<br><span>קומפס מובחר.</span></h2>
-      <p>בחרו נתחים טריים להזמנה מהירה לאיסוף או משלוח.</p>
+      <h2>בשר איכותי טרי<br><span>קומפס מעדני בשר</span></h2>
     </div>
   </section>
 
@@ -376,7 +412,7 @@
     <section class="info-grid" aria-label="מידע לחנות">
       <div class="info-box">
         <h3 class="section-title">שעות פתיחה</h3>
-        <p>ראשון-חמישי 10:00-21:00<br>שישי 09:00-14:30<br>שבת 20:30-22:00</p>
+        <p>ראשון-חמישי 10:00-21:00<br>שישי 09:00-16:00<br>שבת 20:30-22:00</p>
       </div>
       <div class="info-box">
         <h3 class="section-title">איסוף ומשלוח</h3>
@@ -413,6 +449,20 @@
 
 <div class="cart-float"><button class="cart-pill" onclick="scrollToCart()" aria-label="מעבר לסל">סל <span id="cartTotalMini">₪0</span></button></div>
 <button class="wa-float" aria-label="עזרה והזמנה ב-WhatsApp" onclick="openWhatsApp()">💬</button>
+
+<button class="accessibility-toggle" id="accessibilityToggle" type="button" aria-label="פתח כלי נגישות" aria-expanded="false" aria-controls="accessibilityPanel">♿ נגישות</button>
+<div class="accessibility-panel" id="accessibilityPanel" aria-hidden="true">
+  <h3>כלי נגישות</h3>
+  <div class="accessibility-actions">
+    <button type="button" data-a11y-action="increase-text">הגדלת טקסט</button>
+    <button type="button" data-a11y-action="decrease-text">הקטנת טקסט</button>
+    <button type="button" data-a11y-action="high-contrast">ניגודיות גבוהה</button>
+    <button type="button" data-a11y-action="highlight-links">הדגשת קישורים</button>
+    <button type="button" data-a11y-action="text-spacing">ריווח טקסט</button>
+    <button type="button" data-a11y-action="stop-animations">עצירת אנימציות</button>
+    <button type="button" data-a11y-action="reset">איפוס הגדרות</button>
+  </div>
+</div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="modal" id="productModal" aria-hidden="true" onclick="closeModal(event)">
   <div class="modal-content" role="dialog" aria-modal="true" aria-label="פרטי מוצר">
@@ -611,6 +661,34 @@ document.querySelectorAll('[data-close-modal]').forEach(btn=>{
     if(modal){ modal.setAttribute('aria-hidden','true'); }
   });
 });
+
+const a11yPanel = document.getElementById('accessibilityPanel');
+const a11yToggle = document.getElementById('accessibilityToggle');
+let currentScale = 1;
+function applyFontScale(){ document.documentElement.style.fontSize = `${currentScale * 100}%`; }
+function toggleA11yClass(className){ document.body.classList.toggle(className); }
+a11yToggle.addEventListener('click',()=>{
+  const isOpen = a11yPanel.getAttribute('aria-hidden') === 'false';
+  a11yPanel.setAttribute('aria-hidden', String(isOpen));
+  a11yToggle.setAttribute('aria-expanded', String(!isOpen));
+});
+document.querySelectorAll('[data-a11y-action]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const action = btn.dataset.a11yAction;
+    if(action==='increase-text'){ currentScale = Math.min(1.35, currentScale + 0.05); applyFontScale(); }
+    if(action==='decrease-text'){ currentScale = Math.max(0.85, currentScale - 0.05); applyFontScale(); }
+    if(action==='high-contrast') toggleA11yClass('a11y-high-contrast');
+    if(action==='highlight-links') toggleA11yClass('a11y-highlight-links');
+    if(action==='text-spacing') toggleA11yClass('a11y-text-spacing');
+    if(action==='stop-animations') toggleA11yClass('a11y-stop-animations');
+    if(action==='reset'){
+      currentScale = 1;
+      applyFontScale();
+      document.body.classList.remove('a11y-high-contrast','a11y-highlight-links','a11y-text-spacing','a11y-stop-animations');
+    }
+  });
+});
+
 function renderCart(){const items=Object.values(cart); const box=document.getElementById('cartItems'); if(!items.length){box.className='meta';box.innerHTML='עדיין לא נבחרו מוצרים'}else{box.className='';box.innerHTML=items.map(i=>`<div style="border-bottom:1px solid #2a2a2a;padding:6px 0"><b>${i.name}</b><br>${i.qty} ${i.unit||''} × ${money(i.price)} = ${money(i.qty*i.price)}<br><button class="chip" onclick="removeItem('${i.id}')">הסר</button></div>`).join('')} const total=items.reduce((s,i)=>s+i.qty*i.price,0); document.getElementById('cartTotal').textContent=money(total); document.getElementById('cartTotalMini').textContent=money(total); document.getElementById('cartCount').textContent=items.length;}
 document.getElementById('orderForm').addEventListener('submit',async e=>{e.preventDefault(); const items=Object.values(cart); if(!items.length){showToast('צריך לבחור לפחות מוצר אחד');return} if(!GOOGLE_SCRIPT_URL.includes('script.google.com')){showToast('צריך להכניס קודם את קישור Apps Script בקובץ');return} const fd=new FormData(e.target); const payload={customer:{name:fd.get('name'),phone:fd.get('phone'),email:fd.get('email'),city:fd.get('city'),address:fd.get('address'),orderType:fd.get('orderType'),notes:fd.get('notes')},items:items.map(i=>({id:i.id,name:i.name,quantity:i.qty,unit:i.unit,price:Number(i.price),lineTotal:Number(i.qty*i.price)})),total:items.reduce((s,i)=>s+i.qty*i.price,0)}; try{const res=await fetch(GOOGLE_SCRIPT_URL,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'text/plain;charset=utf-8'}}); const data=await res.json(); if(data.success){showToast('ההזמנה נשלחה בהצלחה! מספר הזמנה: '+data.orderNumber); cart={};renderCart();e.target.reset();}else throw new Error(data.error||'שגיאה')}catch(err){showToast('שגיאה בשליחת ההזמנה: '+err.message)}});
 loadProducts();
