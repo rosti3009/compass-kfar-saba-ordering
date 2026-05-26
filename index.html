@@ -357,6 +357,49 @@
     .legal-content h4 { color: var(--gold); margin: 12px 0 6px; }
     .legal-content p, .legal-content li { margin: 0 0 8px; }
 
+    .cookie-banner {
+      position: fixed;
+      bottom: 0;
+      right: 50%;
+      transform: translateX(50%);
+      width: min(980px, 98vw);
+      z-index: 140;
+      border-top: 1px solid #3a3124;
+      background: rgba(10, 10, 10, 0.98);
+      backdrop-filter: blur(8px);
+      padding: 12px;
+      box-shadow: 0 -8px 26px rgba(0,0,0,.45);
+    }
+    .cookie-banner[hidden] { display: none; }
+    .cookie-banner-content {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      color: #e6d8c0;
+      font-size: .9rem;
+      line-height: 1.5;
+      text-align: right;
+    }
+    .cookie-banner-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .cookie-banner button, .cookie-banner .cookie-link-btn {
+      border: 1px solid #3a3124;
+      border-radius: 999px;
+      padding: 9px 14px;
+      font: inherit;
+      cursor: pointer;
+    }
+    .cookie-banner .cookie-approve-btn {
+      background: linear-gradient(160deg, var(--red), var(--red-deep));
+      color: #fff;
+      border-color: transparent;
+      font-weight: 700;
+    }
+    .cookie-banner .cookie-link-btn {
+      background: #16120c;
+      color: #e2c189;
+    }
+    .cookie-banner .cookie-link-btn:hover, .cookie-banner .cookie-link-btn:focus-visible { border-color: var(--gold); background: #1f1710; }
+
     :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
     @media (min-width: 760px) {
@@ -462,7 +505,7 @@
 
     <div class="footer">
       <div>© קומפס מעדני בשר · כפר סבא</div>
-      <div>רח׳ סוקולוב 4, כפר סבא</div>
+      <div>רח׳ סוקולוב 3, כפר סבא</div>
       <div>טלפון ליצירת קשר: <a href="tel:0549481599" aria-label="התקשרו לקומפס מעדני בשר במספר 054-948-1599">054-948-1599</a></div>
       <div class="footer-links" aria-label="קישורי מדיניות ונגישות">
         <button class="footer-link-btn" type="button" data-modal-target="accessibilityModal" aria-label="פתח הצהרת נגישות">הצהרת נגישות</button>
@@ -551,6 +594,17 @@
   </div>
 </div>
 
+
+<div class="cookie-banner" id="cookieBanner" role="region" aria-label="הודעת קובצי עוגיות" hidden>
+  <div class="cookie-banner-content">
+    <div>באתר זה נעשה שימוש בקבצי עוגיות (Cookies) ובטכנולוגיות דומות לצרכים תפעוליים, ניתוח סטטיסטי, שיפור חוויית המשתמש והתאמת תוכן ופרסום ממוקד.</div>
+    <div class="cookie-banner-actions">
+      <button class="cookie-approve-btn" id="cookieConsentApprove" type="button" aria-label="אישור שימוש בעוגיות">מסכים/ה</button>
+      <button class="cookie-link-btn" type="button" id="cookiePrivacyBtn" aria-label="פתח מדיניות פרטיות">מדיניות פרטיות</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwuHIwl8KeVK5iwNiSu6PtzW_pvmO1K5gnd6pc3fRqzzznhS5Tg5cZaLcmpKwhwMovc/exec';
 const FIXED_CATEGORY_LABELS = [
@@ -581,6 +635,7 @@ const fallbackProducts = [
  {id:'kebab',name:'קבב עגל טלה',category:'קצבייה',unit:'מארז',price:65,description:'מארז קבב איכותי',image:'',active:true}
 ];
 const REQUIRED_PRODUCT_COLUMNS = ['id','category','name','price','unit','description','image','active'];
+const COOKIE_CONSENT_STORAGE_KEY = 'compassCookieConsentApproved';
 const CATEGORY_ONLY_LABELS = new Set(['הכל', 'נתחי בקר', 'סטייקים', 'קצבייה']);
 function money(n){return '₪'+(Number(n)||0).toLocaleString('he-IL',{maximumFractionDigits:1})}
 function showToast(t){const el=document.getElementById('toast');el.textContent=t;el.style.display='block';setTimeout(()=>el.style.display='none',3500)}
@@ -688,6 +743,15 @@ document.querySelectorAll('[data-close-modal]').forEach(btn=>{
   });
 });
 
+const cookieConsentApproveBtn = document.getElementById('cookieConsentApprove');
+if(cookieConsentApproveBtn){
+  cookieConsentApproveBtn.addEventListener('click', approveCookieConsent);
+}
+const cookiePrivacyBtn = document.getElementById('cookiePrivacyBtn');
+if(cookiePrivacyBtn){
+  cookiePrivacyBtn.addEventListener('click', ()=>openModalById('privacyModal'));
+}
+
 const a11yPanel = document.getElementById('accessibilityPanel');
 const a11yToggle = document.getElementById('accessibilityToggle');
 let currentScale = 1;
@@ -715,12 +779,26 @@ document.querySelectorAll('[data-a11y-action]').forEach(btn=>{
   });
 });
 
+
+function showCookieBannerIfNeeded(){
+  const banner = document.getElementById('cookieBanner');
+  if(!banner) return;
+  const hasConsent = localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY) === 'true';
+  if(!hasConsent){ banner.hidden = false; }
+}
+function approveCookieConsent(){
+  localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, 'true');
+  const banner = document.getElementById('cookieBanner');
+  if(banner){ banner.hidden = true; }
+}
+
 function renderCart(){const items=Object.values(cart); const box=document.getElementById('cartItems'); if(!items.length){box.className='meta';box.innerHTML='עדיין לא נבחרו מוצרים'}else{box.className='';box.innerHTML=items.map(i=>`<div style="border-bottom:1px solid #2a2a2a;padding:6px 0"><b>${i.name}</b><br>${i.qty} ${i.unit||''} × ${money(i.price)} = ${money(i.qty*i.price)}<br><button class="chip" onclick="removeItem('${i.id}')">הסר</button></div>`).join('')} const total=items.reduce((s,i)=>s+i.qty*i.price,0); document.getElementById('cartTotal').textContent=money(total); document.getElementById('cartTotalMini').textContent=money(total); document.getElementById('cartCount').textContent=items.length;}
 function buildOrderSummaryHtml(orderData){const rows=orderData.items.map(item=>`<tr><td>${escapeHtml(item.name)}</td><td>${item.quantity}</td><td>${escapeHtml(item.unit||'יחידה')}</td><td>${money(item.price)}</td><td>${money(item.lineTotal)}</td></tr>`).join(''); return `<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>סיכום הזמנה ${escapeHtml(orderData.orderNumber)}</title><style>body{font-family:Arial,sans-serif;line-height:1.5;padding:18px;color:#111}h1,h2{margin:0 0 8px}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #bbb;padding:8px;text-align:right}th{background:#f4f4f4}.muted{color:#444;font-size:14px;margin-top:14px}</style></head><body><h1>קומפס מעדני בשר</h1><h2>סניף: כפר סבא</h2><p><b>מספר הזמנה:</b> ${escapeHtml(orderData.orderNumber)}<br><b>תאריך ושעה:</b> ${escapeHtml(orderData.dateTime)}</p><p><b>פרטי לקוח:</b><br>שם: ${escapeHtml(orderData.customer.name||'')}<br>טלפון: ${escapeHtml(orderData.customer.phone||'')}<br>אימייל: ${escapeHtml(orderData.customer.email||'')}<br>יישוב: ${escapeHtml(orderData.customer.city||'')}<br>כתובת: ${escapeHtml(orderData.customer.address||'')}</p><p><b>סוג הזמנה:</b> ${escapeHtml(orderData.customer.orderType||'')}<br><b>הערות:</b> ${escapeHtml(orderData.customer.notes||'ללא')}</p><table><thead><tr><th>רשימת מוצרים</th><th>כמות</th><th>יחידה</th><th>מחיר</th><th>סה״כ</th></tr></thead><tbody>${rows}</tbody></table><p><b>סה״כ משוער:</b> ${money(orderData.total)}</p><p class="muted">הערה: המחיר הסופי ייקבע לפי שקילה בפועל, זמינות מלאי ואישור נציג החנות.</p></body></html>`}
 function downloadOrderSummary(orderData){const html=buildOrderSummaryHtml(orderData); const blob=new Blob([html],{type:'text/html;charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`order-${orderData.orderNumber}.html`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function renderOrderSuccess(orderData,pdfUrl){const box=document.getElementById('orderSuccess'); const pdfLink=pdfUrl?`<a href="${encodeURI(pdfUrl)}" target="_blank" rel="noopener noreferrer">צפייה בקובץ ההזמנה</a>`:''; box.innerHTML=`<h3>ההזמנה נשלחה בהצלחה!</h3><div>מספר הזמנה: <b>${escapeHtml(orderData.orderNumber)}</b></div><div class="order-actions"><button type="button" onclick="downloadOrderSummary(window.__lastOrderData)">הורדת ההזמנה</button>${pdfLink}</div>`; box.style.display='block';}
 function escapeHtml(value){return String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;");}
 document.getElementById('orderForm').addEventListener('submit',async e=>{e.preventDefault(); const items=Object.values(cart); if(!items.length){showToast('צריך לבחור לפחות מוצר אחד');return} if(!GOOGLE_SCRIPT_URL.includes('script.google.com')){showToast('צריך להכניס קודם את קישור Apps Script בקובץ');return} const fd=new FormData(e.target); const payload={customer:{name:fd.get('name'),phone:fd.get('phone'),email:fd.get('email'),city:fd.get('city'),address:fd.get('address'),orderType:fd.get('orderType'),notes:fd.get('notes')},items:items.map(i=>({id:i.id,name:i.name,quantity:i.qty,unit:i.unit,price:Number(i.price),lineTotal:Number(i.qty*i.price)})),total:items.reduce((s,i)=>s+i.qty*i.price,0)}; try{const res=await fetch(GOOGLE_SCRIPT_URL,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'text/plain;charset=utf-8'}}); const data=await res.json(); if(data.success){const orderData={orderNumber:data.orderNumber||`WEB-${Date.now()}`,dateTime:new Date().toLocaleString('he-IL'),customer:payload.customer,items:payload.items,total:payload.total}; window.__lastOrderData=orderData; renderOrderSuccess(orderData,data.pdfUrl); showToast('ההזמנה נשלחה בהצלחה! מספר הזמנה: '+orderData.orderNumber); cart={};renderCart();e.target.reset();}else throw new Error(data.error||'שגיאה')}catch(err){showToast('שגיאה בשליחת ההזמנה: '+err.message)}});
+showCookieBannerIfNeeded();
 loadProducts();
 </script>
 </body>
