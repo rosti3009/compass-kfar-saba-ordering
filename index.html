@@ -639,6 +639,16 @@ const fallbackProducts = [
  {id:'kebab',name:'קבב עגל טלה',category:'קצבייה',unit:'מארז',price:65,description:'מארז קבב איכותי',image:'',active:true}
 ];
 const REQUIRED_PRODUCT_COLUMNS = ['id','category','name','price','unit','description','image','active'];
+const DELIVERY_OPTIONS = [
+  { value: 'כפר סבא', label: 'כפר סבא — 25₪', fee: 25 },
+  { value: 'רעננה', label: 'רעננה — 30₪', fee: 30 },
+  { value: 'הוד השרון', label: 'הוד השרון — 30₪', fee: 30 },
+  { value: 'הוד השרון / קניון שרונים', label: 'הוד השרון / קניון שרונים — 35₪', fee: 35 },
+  { value: 'הרצליה', label: 'הרצליה — 50₪', fee: 50 },
+  { value: 'הרצליה פיתוח', label: 'הרצליה פיתוח — 60₪', fee: 60 },
+  { value: 'פתח תקווה', label: 'פתח תקווה — 80₪', fee: 80 },
+  { value: 'מושבים / יישובים אחרים', label: 'מושבים / יישובים אחרים — בתיאום מול החנות', fee: null, custom: true }
+];
 const COOKIE_CONSENT_STORAGE_KEY = 'compassCookieConsentApproved';
 const CATEGORY_ONLY_LABELS = new Set(['הכל', 'נתחי בקר', 'סטייקים', 'קצבייה']);
 function money(n){return '₪'+(Number(n)||0).toLocaleString('he-IL',{maximumFractionDigits:1})}
@@ -796,12 +806,54 @@ function approveCookieConsent(){
   if(banner){ banner.hidden = true; }
 }
 
-function renderCart(){const items=Object.values(cart); const box=document.getElementById('cartItems'); if(!items.length){box.className='meta';box.innerHTML='עדיין לא נבחרו מוצרים'}else{box.className='';box.innerHTML=items.map(i=>`<div style="border-bottom:1px solid #2a2a2a;padding:6px 0"><b>${i.name}</b><br>${i.qty} ${i.unit||''} × ${money(i.price)} = ${money(i.qty*i.price)}<br><button class="chip" onclick="removeItem('${i.id}')">הסר</button></div>`).join('')} const total=items.reduce((s,i)=>s+i.qty*i.price,0); document.getElementById('cartTotal').textContent=money(total); document.getElementById('cartTotalMini').textContent=money(total); document.getElementById('cartCount').textContent=items.length;}
-function buildOrderSummaryHtml(orderData){const rows=orderData.items.map(item=>`<tr><td>${escapeHtml(item.name)}</td><td>${item.quantity}</td><td>${escapeHtml(item.unit||'יחידה')}</td><td>${money(item.price)}</td><td>${money(item.lineTotal)}</td></tr>`).join(''); return `<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>סיכום הזמנה ${escapeHtml(orderData.orderNumber)}</title><style>body{font-family:Arial,sans-serif;line-height:1.5;padding:18px;color:#111}h1,h2{margin:0 0 8px}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #bbb;padding:8px;text-align:right}th{background:#f4f4f4}.muted{color:#444;font-size:14px;margin-top:14px}</style></head><body><h1>קומפס מעדני בשר</h1><h2>סניף: כפר סבא</h2><p><b>מספר הזמנה:</b> ${escapeHtml(orderData.orderNumber)}<br><b>תאריך ושעה:</b> ${escapeHtml(orderData.dateTime)}</p><p><b>פרטי לקוח:</b><br>שם: ${escapeHtml(orderData.customer.name||'')}<br>טלפון: ${escapeHtml(orderData.customer.phone||'')}<br>אימייל: ${escapeHtml(orderData.customer.email||'')}<br>יישוב: ${escapeHtml(orderData.customer.city||'')}<br>כתובת: ${escapeHtml(orderData.customer.address||'')}</p><p><b>סוג הזמנה:</b> ${escapeHtml(orderData.customer.orderType||'')}<br><b>הערות:</b> ${escapeHtml(orderData.customer.notes||'ללא')}</p><table><thead><tr><th>רשימת מוצרים</th><th>כמות</th><th>יחידה</th><th>מחיר</th><th>סה״כ</th></tr></thead><tbody>${rows}</tbody></table><p><b>סה״כ משוער:</b> ${money(orderData.total)}</p><p class="muted">הערה: המחיר הסופי ייקבע לפי שקילה בפועל, זמינות מלאי ואישור נציג החנות.</p></body></html>`}
+function getDeliverySelection(){
+  const orderType = String(document.querySelector('[name="orderType"]')?.value || '').trim();
+  const deliveryArea = String(document.querySelector('[name="deliveryArea"]')?.value || '').trim();
+  if(orderType !== 'משלוח') return {orderType, deliveryArea:'', deliveryFee:0, deliveryFeeLabel:'₪0', deliveryCoordinationOnly:false};
+  const matched = DELIVERY_OPTIONS.find(option=>option.value===deliveryArea);
+  if(!matched) return {orderType, deliveryArea:'', deliveryFee:0, deliveryFeeLabel:'₪0', deliveryCoordinationOnly:false};
+  if(matched.custom) return {orderType, deliveryArea:matched.value, deliveryFee:null, deliveryFeeLabel:'דמי משלוח יתואמו מול החנות', deliveryCoordinationOnly:true};
+  return {orderType, deliveryArea:matched.value, deliveryFee:matched.fee, deliveryFeeLabel:money(matched.fee), deliveryCoordinationOnly:false};
+}
+function renderCart(){
+  const items=Object.values(cart); const box=document.getElementById('cartItems');
+  if(!items.length){box.className='meta';box.innerHTML='עדיין לא נבחרו מוצרים'}else{box.className='';box.innerHTML=items.map(i=>`<div style="border-bottom:1px solid #2a2a2a;padding:6px 0"><b>${i.name}</b><br>${i.qty} ${i.unit||''} × ${money(i.price)} = ${money(i.qty*i.price)}<br><button class="chip" onclick="removeItem('${i.id}')">הסר</button></div>`).join('')}
+  const productsTotal=items.reduce((s,i)=>s+i.qty*i.price,0);
+  const delivery = getDeliverySelection();
+  const deliveryFeeNumeric = Number(delivery.deliveryFee) || 0;
+  const estimatedTotal = productsTotal + deliveryFeeNumeric;
+  const deliveryLine = delivery.deliveryCoordinationOnly ? 'דמי משלוח יתואמו מול החנות' : money(deliveryFeeNumeric);
+  document.getElementById('cartTotal').innerHTML=`<div>סה״כ מוצרים: ${money(productsTotal)}</div><div>דמי משלוח: ${deliveryLine}</div><div>סה״כ משוער: ${money(estimatedTotal)}</div>`;
+  document.getElementById('cartTotalMini').textContent=money(estimatedTotal); document.getElementById('cartCount').textContent=items.length;
+}
+function buildOrderSummaryHtml(orderData){const rows=orderData.items.map(item=>`<tr><td>${escapeHtml(item.name)}</td><td>${item.quantity}</td><td>${escapeHtml(item.unit||'יחידה')}</td><td>${money(item.price)}</td><td>${money(item.lineTotal)}</td></tr>`).join(''); return `<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>סיכום הזמנה ${escapeHtml(orderData.orderNumber)}</title><style>body{font-family:Arial,sans-serif;line-height:1.5;padding:18px;color:#111}h1,h2{margin:0 0 8px}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #bbb;padding:8px;text-align:right}th{background:#f4f4f4}.muted{color:#444;font-size:14px;margin-top:14px}</style></head><body><h1>קומפס מעדני בשר</h1><h2>סניף: כפר סבא</h2><p><b>מספר הזמנה:</b> ${escapeHtml(orderData.orderNumber)}<br><b>תאריך ושעה:</b> ${escapeHtml(orderData.dateTime)}</p><p><b>פרטי לקוח:</b><br>שם: ${escapeHtml(orderData.customer.name||'')}<br>טלפון: ${escapeHtml(orderData.customer.phone||'')}<br>אימייל: ${escapeHtml(orderData.customer.email||'')}<br>יישוב: ${escapeHtml(orderData.customer.city||'')}<br>כתובת: ${escapeHtml(orderData.customer.address||'')}</p><p><b>סוג הזמנה:</b> ${escapeHtml(orderData.customer.orderType||'')}<br><b>אזור משלוח:</b> ${escapeHtml(orderData.customer.deliveryArea||'-')}<br><b>דמי משלוח:</b> ${escapeHtml(orderData.deliveryFeeLabel||money(orderData.deliveryFee||0))}<br><b>הערות:</b> ${escapeHtml(orderData.customer.notes||'ללא')}</p><table><thead><tr><th>רשימת מוצרים</th><th>כמות</th><th>יחידה</th><th>מחיר</th><th>סה״כ</th></tr></thead><tbody>${rows}</tbody></table><p><b>סה״כ מוצרים:</b> ${money(orderData.productsTotal||0)}</p><p><b>דמי משלוח:</b> ${escapeHtml(orderData.deliveryFeeLabel||money(orderData.deliveryFee||0))}</p><p><b>סה״כ משוער:</b> ${money(orderData.total)}</p><p class="muted">הערה: המחיר הסופי ייקבע לפי שקילה בפועל, זמינות מלאי ואישור נציג החנות.</p></body></html>`}
 function downloadOrderSummary(orderData){const html=buildOrderSummaryHtml(orderData); const blob=new Blob([html],{type:'text/html;charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`order-${orderData.orderNumber}.html`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function renderOrderSuccess(orderData,pdfUrl){const box=document.getElementById('orderSuccess'); const pdfLink=pdfUrl?`<a href="${encodeURI(pdfUrl)}" target="_blank" rel="noopener noreferrer">צפייה בקובץ ההזמנה</a>`:''; box.innerHTML=`<h3>ההזמנה נשלחה בהצלחה!</h3><div>מספר הזמנה: <b>${escapeHtml(orderData.orderNumber)}</b></div><div class="order-actions"><button type="button" onclick="downloadOrderSummary(window.__lastOrderData)">הורדת ההזמנה</button>${pdfLink}</div>`; box.style.display='block';}
 function escapeHtml(value){return String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;");}
-document.getElementById('orderForm').addEventListener('submit',async e=>{e.preventDefault(); const items=Object.values(cart); if(!items.length){showToast('צריך לבחור לפחות מוצר אחד');return} if(!GOOGLE_SCRIPT_URL.includes('script.google.com')){showToast('צריך להכניס קודם את קישור Apps Script בקובץ');return} const fd=new FormData(e.target); const marketingConsent = fd.get('marketingConsent') === 'true'; const payload={customer:{name:fd.get('name'),phone:fd.get('phone'),email:fd.get('email'),city:fd.get('city'),address:fd.get('address'),orderType:fd.get('orderType'),notes:fd.get('notes'),marketingConsent},marketingConsent,items:items.map(i=>({id:i.id,name:i.name,quantity:i.qty,unit:i.unit,price:Number(i.price),lineTotal:Number(i.qty*i.price)})),total:items.reduce((s,i)=>s+i.qty*i.price,0)}; try{const res=await fetch(GOOGLE_SCRIPT_URL,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'text/plain;charset=utf-8'}}); const data=await res.json(); if(data.success){const orderData={orderNumber:data.orderNumber||`WEB-${Date.now()}`,dateTime:new Date().toLocaleString('he-IL'),customer:payload.customer,items:payload.items,total:payload.total}; window.__lastOrderData=orderData; renderOrderSuccess(orderData,data.pdfUrl); showToast('ההזמנה נשלחה בהצלחה! מספר הזמנה: '+orderData.orderNumber); cart={};renderCart();e.target.reset();}else throw new Error(data.error||'שגיאה')}catch(err){showToast('שגיאה בשליחת ההזמנה: '+err.message)}});
+const orderForm = document.getElementById('orderForm');
+const orderTypeField = orderForm.querySelector('[name="orderType"]');
+const areaLabel = document.createElement('label'); areaLabel.id = 'deliveryAreaLabel'; areaLabel.textContent = 'אזור משלוח';
+const areaSelect = document.createElement('select'); areaSelect.name='deliveryArea'; areaSelect.id='deliveryAreaField'; areaSelect.setAttribute('aria-label','אזור משלוח');
+areaSelect.innerHTML = '<option value="">בחירת אזור משלוח</option>' + DELIVERY_OPTIONS.map(option=>`<option value="${option.value}">${option.label}</option>`).join('');
+const areaHint = document.createElement('div'); areaHint.id='deliveryAreaHint'; areaHint.className='meta'; areaHint.style.marginBottom='8px'; areaHint.textContent='';
+orderTypeField.insertAdjacentElement('afterend', areaLabel); areaLabel.insertAdjacentElement('afterend', areaSelect); areaSelect.insertAdjacentElement('afterend', areaHint);
+function updateDeliveryFieldsVisibility(){
+  const isDelivery = orderTypeField.value === 'משלוח';
+  areaLabel.style.display = isDelivery ? '' : 'none';
+  areaSelect.style.display = isDelivery ? '' : 'none';
+  areaHint.style.display = isDelivery ? '' : 'none';
+  areaSelect.required = isDelivery;
+  if(!isDelivery){ areaSelect.value=''; areaHint.textContent=''; }
+  if(isDelivery){
+    const selected = DELIVERY_OPTIONS.find(option=>option.value===areaSelect.value);
+    areaHint.textContent = selected?.custom ? 'דמי משלוח יתואמו מול החנות' : (selected ? `דמי משלוח: ${money(selected.fee)}` : '');
+  }
+  renderCart();
+}
+orderTypeField.addEventListener('change', updateDeliveryFieldsVisibility);
+areaSelect.addEventListener('change', updateDeliveryFieldsVisibility);
+updateDeliveryFieldsVisibility();
+document.getElementById('orderForm').addEventListener('submit',async e=>{e.preventDefault(); const items=Object.values(cart); if(!items.length){showToast('צריך לבחור לפחות מוצר אחד');return} if(!GOOGLE_SCRIPT_URL.includes('script.google.com')){showToast('צריך להכניס קודם את קישור Apps Script בקובץ');return} const fd=new FormData(e.target); const marketingConsent = fd.get('marketingConsent') === 'true'; const delivery = getDeliverySelection(); if(delivery.orderType==='משלוח' && !delivery.deliveryArea){showToast('יש לבחור אזור משלוח');return;} const itemsPayload=items.map(i=>({id:i.id,name:i.name,quantity:i.qty,unit:i.unit,price:Number(i.price),lineTotal:Number(i.qty*i.price)})); const productsTotal=itemsPayload.reduce((s,i)=>s+i.lineTotal,0); const deliveryFeeNumeric=Number(delivery.deliveryFee)||0; const total=productsTotal+deliveryFeeNumeric; const payload={customer:{name:fd.get('name'),phone:fd.get('phone'),email:fd.get('email'),city:fd.get('city'),address:fd.get('address'),orderType:fd.get('orderType'),deliveryArea:delivery.deliveryArea,notes:fd.get('notes'),marketingConsent},marketingConsent,deliveryArea:delivery.deliveryArea,deliveryFee:delivery.deliveryFee,deliveryFeeLabel:delivery.deliveryFeeLabel,deliveryCoordinationOnly:delivery.deliveryCoordinationOnly,productsTotal,items:itemsPayload,total}; try{const res=await fetch(GOOGLE_SCRIPT_URL,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'text/plain;charset=utf-8'}}); const data=await res.json(); if(data.success){const orderData={orderNumber:data.orderNumber||`WEB-${Date.now()}`,dateTime:new Date().toLocaleString('he-IL'),customer:payload.customer,deliveryArea:payload.deliveryArea,deliveryFee:payload.deliveryFee,deliveryFeeLabel:payload.deliveryFeeLabel,productsTotal:payload.productsTotal,items:payload.items,total:payload.total}; window.__lastOrderData=orderData; renderOrderSuccess(orderData,data.pdfUrl); showToast('ההזמנה נשלחה בהצלחה! מספר הזמנה: '+orderData.orderNumber); cart={};renderCart();e.target.reset();updateDeliveryFieldsVisibility();}else throw new Error(data.error||'שגיאה')}catch(err){showToast('שגיאה בשליחת ההזמנה: '+err.message)}});
 showCookieBannerIfNeeded();
 loadProducts();
 </script>
