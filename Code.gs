@@ -2,21 +2,13 @@
 const BUSINESS_NAME = 'קומפס מעדני בשר';
 const BRANCH_NAME = 'כפר סבא';
 const BUSINESS_ADDRESS = 'רח׳ סוקולוב 3, כפר סבא';
-const BUSINESS_PHONE = '050-4340274';
+const BUSINESS_PHONE = '054-948-1599';
 
 const ORDERS_SHEET_NAME = 'הזמנות אתר';
-const PRODUCTS_SHEET_NAME = 'גיליון1';
+const PRODUCTS_SHEET_NAME = 'גיליון';
 
-// חובה להחליף לאחר יצירת Drive Folder ו-Google Sheet חדשים לכפר סבא
-const FOLDER_ID = 'PASTE_KFAR_SABA_PDF_FOLDER_ID_HERE';
-const SPREADSHEET_ID = 'PASTE_KFAR_SABA_SPREADSHEET_ID_HERE';
-
-const WRITE_BACK_LINK = true;
-const LINK_HEADER_NAME = 'קובץ PDF';
-
-// לפי הבקשה שלך - נשאר האימייל הקיים
-const NOTIFICATION_EMAIL = 'aviv@blucher.co.il';
-const NOTIFICATION_SUBJECT = 'הזמנה חדשה התקבלה באתר - קומפס מעדני בשר כפר סבא';
+const FOLDER_ID = '1mLo_peeuojrXn0HgMrUsxmU0f9-7nQtn';
+const SPREADSHEET_ID = '18o5w_ZqDfVMR6NvGPQ0HbOqArLCCf2wqgKZqIfamUkM';
 /************************************************/
 
 function doPost(e) {
