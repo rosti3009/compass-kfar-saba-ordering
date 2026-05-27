@@ -28,7 +28,7 @@ function doPost(e) {
 
     if (!sheet) {
       sheet = ss.insertSheet(ORDERS_SHEET_NAME);
-      sheet.appendRow(['תאריך','מספר הזמנה','שם לקוח','טלפון','אימייל','יישוב','כתובת','סוג הזמנה','הערות','אישור שיווקי','מוצרים','סה"כ',LINK_HEADER_NAME]);
+      sheet.appendRow(['תאריך','מספר הזמנה','שם לקוח','טלפון','אימייל','יישוב','כתובת','סוג הזמנה','אזור משלוח','דמי משלוח','תווית משלוח','משלוח בתיאום בלבד','הערות','אישור שיווקי','מוצרים','סה"כ מוצרים','סה"כ',LINK_HEADER_NAME]);
     }
 
     const orderNumber = data.orderNumber || Utilities.getUuid().slice(0, 8).toUpperCase();
@@ -39,9 +39,14 @@ function doPost(e) {
     const address = data.address || customer.address || '';
     const orderType = data.orderType || customer.orderType || '';
     const notes = data.notes || customer.notes || '';
+    const deliveryArea = data.deliveryArea || '';
+    const deliveryFee = Number(data.deliveryFee) || 0;
+    const deliveryFeeLabel = data.deliveryFeeLabel || '';
+    const deliveryCoordinationOnly = String(data.deliveryCoordinationOnly) === 'true' || data.deliveryCoordinationOnly === true;
     const marketingConsent = parseMarketingConsent_(data.marketingConsent ?? customer.marketingConsent);
     const items = normalizeItems_(data.items || data.products || []);
-    const total = data.total || calculateTotal_(items);
+    const productsTotal = Number(data.productsTotal) || calculateTotal_(items);
+    const total = Number(data.total) || (productsTotal + deliveryFee);
 
     if (!items.length) throw new Error('לא התקבלו מוצרים בהזמנה');
 
@@ -55,16 +60,21 @@ function doPost(e) {
       'יישוב': city,
       'כתובת': address,
       'סוג הזמנה': orderType,
+      'אזור משלוח': deliveryArea,
+      'דמי משלוח': deliveryFee,
+      'תווית משלוח': deliveryFeeLabel,
+      'משלוח בתיאום בלבד': deliveryCoordinationOnly ? 'כן' : 'לא',
       'הערות': notes,
       'אישור שיווקי': marketingConsent ? 'כן' : 'לא',
       'מוצרים': JSON.stringify(items, null, 2),
+      'סה"כ מוצרים': productsTotal,
       'סה"כ': total
     };
     const row = appendOrderRowByHeaders_(sheet, rowData);
 
-    const pdfFile = createOrderPdf_({orderNumber, customerName, phone, email, city, address, orderType, notes, marketingConsent, items, total, date: now});
+    const pdfFile = createOrderPdf_({orderNumber, customerName, phone, email, city, address, orderType, deliveryArea, deliveryFee, deliveryFeeLabel, deliveryCoordinationOnly, notes, marketingConsent, items, productsTotal, total, date: now});
     if (WRITE_BACK_LINK) writeBackLink_(sheet, row, pdfFile.getUrl(), LINK_HEADER_NAME);
-    sendNewOrderNotificationEmail_({orderNumber, customerName, phone, email, city, address, orderType, notes, marketingConsent, items, total, date: now}, pdfFile);
+    sendNewOrderNotificationEmail_({orderNumber, customerName, phone, email, city, address, orderType, deliveryArea, deliveryFee, deliveryFeeLabel, deliveryCoordinationOnly, notes, marketingConsent, items, productsTotal, total, date: now}, pdfFile);
 
     return jsonResponse_({success:true, orderNumber, pdfUrl:pdfFile.getUrl(), emailed:true});
   } catch (err) {
@@ -162,7 +172,7 @@ function appendOrderRowByHeaders_(sheet, rowData) {
   return sheet.getLastRow();
 }
 
-function createOrderPdf_({orderNumber, customerName, phone, email, city, address, orderType, notes, marketingConsent, items, total, date}) {
+function createOrderPdf_({orderNumber, customerName, phone, email, city, address, orderType, deliveryArea, deliveryFee, deliveryFeeLabel, deliveryCoordinationOnly, notes, marketingConsent, items, productsTotal, total, date}) {
   const folder = DriveApp.getFolderById(FOLDER_ID);
   const safeName = String(customerName).replace(/[\\/:*?"<>|]/g, '-');
   const stamp = Utilities.formatDate(date, Session.getScriptTimeZone(), 'yyyy-MM-dd_HH-mm');
@@ -183,7 +193,7 @@ function createOrderPdf_({orderNumber, customerName, phone, email, city, address
 
   body.appendParagraph('פרטי לקוח').setHeading(DocumentApp.ParagraphHeading.HEADING2).setAlignment(DocumentApp.HorizontalAlignment.RIGHT);
   const customerTable = body.appendTable([
-    ['שדה', 'פרטים'], ['שם לקוח', customerName || ''], ['טלפון', phone || ''], ['אימייל', email || ''], ['יישוב', city || ''], ['כתובת', address || ''], ['סוג הזמנה', orderType || ''], ['הערות', notes || ''], ['אישור שיווקי', marketingConsent ? 'כן' : 'לא']
+    ['שדה', 'פרטים'], ['שם לקוח', customerName || ''], ['טלפון', phone || ''], ['אימייל', email || ''], ['יישוב', city || ''], ['כתובת', address || ''], ['סוג הזמנה', orderType || ''], ['אזור משלוח', deliveryArea || '-'], ['דמי משלוח', `₪${deliveryFee || 0}`], ['תווית משלוח', deliveryFeeLabel || '-'], ['משלוח בתיאום בלבד', deliveryCoordinationOnly ? 'כן' : 'לא'], ['הערות', notes || ''], ['אישור שיווקי', marketingConsent ? 'כן' : 'לא']
   ]);
   customerTable.getRow(0).editAsText().setBold(true);
 
@@ -206,6 +216,8 @@ function createOrderPdf_({orderNumber, customerName, phone, email, city, address
   });
   itemsTable.getRow(0).editAsText().setBold(true);
   body.appendParagraph('');
+  body.appendParagraph(`סה"כ מוצרים: ₪${productsTotal || 0}`).setAlignment(DocumentApp.HorizontalAlignment.RIGHT);
+  body.appendParagraph(`דמי משלוח: ₪${deliveryFee || 0}`).setAlignment(DocumentApp.HorizontalAlignment.RIGHT);
   body.appendParagraph(`סה"כ משוער: ₪${total || 0}`).setBold(true).setAlignment(DocumentApp.HorizontalAlignment.RIGHT);
   body.appendParagraph('');
   body.appendParagraph('הערה: חיוב סופי יתבצע לפי שקילה בפועל וזמינות מלאי.').setAlignment(DocumentApp.HorizontalAlignment.RIGHT);
@@ -219,8 +231,8 @@ function sendNewOrderNotificationEmail_(order, pdfFile) {
   const body = [
     'התקבלה הזמנה חדשה באתר קומפס מעדני בשר כפר סבא.', '',
     `מספר הזמנה: ${order.orderNumber}`, `שם לקוח: ${order.customerName}`, `טלפון: ${order.phone}`, `אימייל: ${order.email || '-'}`,
-    `יישוב: ${order.city || '-'}`, `כתובת: ${order.address || '-'}`, `סוג הזמנה: ${order.orderType || '-'}`, `הערות: ${order.notes || '-'}`, `אישור שיווקי: ${order.marketingConsent ? 'כן' : 'לא'}`,
-    '', 'מוצרים:', itemsText || '-', '', `סה"כ משוער: ₪${order.total || 0}`,
+    `יישוב: ${order.city || '-'}`, `כתובת: ${order.address || '-'}`, `סוג הזמנה: ${order.orderType || '-'}`, `אזור משלוח: ${order.deliveryArea || '-'}`, `דמי משלוח: ₪${order.deliveryFee || 0}`, `תווית משלוח: ${order.deliveryFeeLabel || '-'}`, `משלוח בתיאום בלבד: ${order.deliveryCoordinationOnly ? 'כן' : 'לא'}`, `הערות: ${order.notes || '-'}`, `אישור שיווקי: ${order.marketingConsent ? 'כן' : 'לא'}`,
+    '', 'מוצרים:', itemsText || '-', '', `סה"כ מוצרים: ₪${order.productsTotal || 0}`, `סה"כ משוער: ₪${order.total || 0}`,
     `תאריך: ${Utilities.formatDate(order.date, Session.getScriptTimeZone(), 'dd/MM/yyyy HH:mm')}`, '', `קישור לקובץ PDF: ${pdfFile.getUrl()}`
   ].join('\n');
   MailApp.sendEmail({to: NOTIFICATION_EMAIL, subject: NOTIFICATION_SUBJECT, body, attachments: [pdfFile.getBlob()]});
@@ -250,7 +262,7 @@ function setupCompassKfarSabaSheets() {
     products.appendRow(['kebab','קצבייה','קבב עגל טלה',65,'מארז','מארז קבב איכותי','','TRUE','','','','']);
   }
   let orders = ss.getSheetByName(ORDERS_SHEET_NAME) || ss.insertSheet(ORDERS_SHEET_NAME);
-  if (orders.getLastRow() === 0) orders.appendRow(['תאריך','מספר הזמנה','שם לקוח','טלפון','אימייל','יישוב','כתובת','סוג הזמנה','הערות','אישור שיווקי','מוצרים','סה"כ',LINK_HEADER_NAME]);
+  if (orders.getLastRow() === 0) orders.appendRow(['תאריך','מספר הזמנה','שם לקוח','טלפון','אימייל','יישוב','כתובת','סוג הזמנה','אזור משלוח','דמי משלוח','תווית משלוח','משלוח בתיאום בלבד','הערות','אישור שיווקי','מוצרים','סה"כ מוצרים','סה"כ',LINK_HEADER_NAME]);
 }
 
 function testWebsiteOrder() {
