@@ -134,7 +134,11 @@ function normalizeItems_(items) {
     qty: item.qty || item.quantity || '',
     unit: item.unit || 'ק״ג',
     price: item.price || '',
-    total: item.total || item.lineTotal || ''
+    total: item.total || item.lineTotal || '',
+    barcode: item.barcode || '',
+    sku: item.sku || '',
+    pickingNote: item.pickingNote || '',
+    stockStatus: item.stockStatus || ''
   })).filter(item => String(item.name).trim() !== '');
 }
 
@@ -187,12 +191,16 @@ function createOrderPdf_({orderNumber, customerName, phone, email, city, address
   body.appendParagraph('מוצרים להזמנה').setHeading(DocumentApp.ParagraphHeading.HEADING2).setAlignment(DocumentApp.HorizontalAlignment.RIGHT);
   const itemsTable = body.appendTable();
   const headerRow = itemsTable.appendTableRow();
-  ['מוצר','כמות','יחידה','מחיר','סה"כ'].forEach(h => headerRow.appendTableCell(h));
+  ['מוצר','כמות','יחידה','SKU','ברקוד','הערת ליקוט','סטטוס מלאי','מחיר','סה"כ'].forEach(h => headerRow.appendTableCell(h));
   items.forEach(item => {
     const row = itemsTable.appendTableRow();
     row.appendTableCell(String(item.name || ''));
     row.appendTableCell(String(item.qty || ''));
     row.appendTableCell(String(item.unit || ''));
+    row.appendTableCell(String(item.sku || '-'));
+    row.appendTableCell(String(item.barcode || '-'));
+    row.appendTableCell(String(item.pickingNote || '-'));
+    row.appendTableCell(String(item.stockStatus || '-'));
     row.appendTableCell(String(item.price || ''));
     row.appendTableCell(String(item.total || ''));
   });
@@ -207,7 +215,7 @@ function createOrderPdf_({orderNumber, customerName, phone, email, city, address
 }
 
 function sendNewOrderNotificationEmail_(order, pdfFile) {
-  const itemsText = order.items.map((item, index) => `${index + 1}. ${item.name} × ${item.qty} ${item.unit || ''} — מחיר: ₪${item.price || ''} — סה"כ: ₪${item.total || ''}`).join('\n');
+  const itemsText = order.items.map((item, index) => `${index + 1}. ${item.name} × ${item.qty} ${item.unit || ''} — SKU: ${item.sku || '-'} — ברקוד: ${item.barcode || '-'} — הערת ליקוט: ${item.pickingNote || '-'} — סטטוס מלאי: ${item.stockStatus || '-'} — מחיר: ₪${item.price || ''} — סה"כ: ₪${item.total || ''}`).join('\n');
   const body = [
     'התקבלה הזמנה חדשה באתר קומפס מעדני בשר כפר סבא.', '',
     `מספר הזמנה: ${order.orderNumber}`, `שם לקוח: ${order.customerName}`, `טלפון: ${order.phone}`, `אימייל: ${order.email || '-'}`,
@@ -234,12 +242,12 @@ function setupCompassKfarSabaSheets() {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   let products = ss.getSheetByName(PRODUCTS_SHEET_NAME) || ss.insertSheet(PRODUCTS_SHEET_NAME);
   if (products.getLastRow() === 0) {
-    products.appendRow(['id','name','category','unit','price','description','image','active']);
-    products.appendRow(['entrecote','אנטריקוט פרימיום','נתחי בקר','ק״ג',199.9,'נתח פרימיום לצלייה','','TRUE']);
-    products.appendRow(['picanha','פיקניה','נתחי בקר','ק״ג',171.5,'פיקניה איכותית לצלייה','','TRUE']);
-    products.appendRow(['denver','דנוור סטייק','סטייקים','ק״ג',139.9,'סטייק דנוור עסיסי','','TRUE']);
-    products.appendRow(['asado','אסאדו','נתחי בקר','ק״ג',100.3,'אסאדו לבישול ארוך/גריל','','TRUE']);
-    products.appendRow(['kebab','קבב עגל טלה','קצבייה','מארז',65,'מארז קבב איכותי','','TRUE']);
+    products.appendRow(['id','category','name','price','unit','description','image','active','barcode','sku','pickingNote','stockStatus']);
+    products.appendRow(['entrecote','נתחי בקר','אנטריקוט פרימיום',199.9,'ק״ג','נתח פרימיום לצלייה','','TRUE','','','','']);
+    products.appendRow(['picanha','נתחי בקר','פיקניה',171.5,'ק״ג','פיקניה איכותית לצלייה','','TRUE','','','','']);
+    products.appendRow(['denver','סטייקים','דנוור סטייק',139.9,'ק״ג','סטייק דנוור עסיסי','','TRUE','','','','']);
+    products.appendRow(['asado','נתחי בקר','אסאדו',100.3,'ק״ג','אסאדו לבישול ארוך/גריל','','TRUE','','','','']);
+    products.appendRow(['kebab','קצבייה','קבב עגל טלה',65,'מארז','מארז קבב איכותי','','TRUE','','','','']);
   }
   let orders = ss.getSheetByName(ORDERS_SHEET_NAME) || ss.insertSheet(ORDERS_SHEET_NAME);
   if (orders.getLastRow() === 0) orders.appendRow(['תאריך','מספר הזמנה','שם לקוח','טלפון','אימייל','יישוב','כתובת','סוג הזמנה','הערות','אישור שיווקי','מוצרים','סה"כ',LINK_HEADER_NAME]);
